@@ -20,8 +20,8 @@
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col font-sans">
 
-  <!-- ================= 全局统一顶栏 ================= -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+  <!-- ================= 全局统一顶栏 (认证页时自动隐藏) ================= -->
+  <header id="global-navbar" class="bg-white border-b border-slate-200 sticky top-0 z-30">
     <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
       <div class="flex items-center gap-6">
         <button onclick="switchView('home')" class="flex items-center gap-2 font-bold text-lg text-slate-900 tracking-tight hover:opacity-80">
@@ -39,7 +39,8 @@
           <span>+</span> 发起新行程
         </button>
         <div class="h-6 w-px bg-slate-200"></div>
-        <div class="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center text-xs font-semibold">
+        <button onclick="handleSignOut()" class="text-xs text-slate-500 hover:text-slate-800 font-medium">退出登录</button>
+        <div id="nav-user-avatar" class="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center text-xs font-semibold">
           AL
         </div>
       </div>
@@ -53,7 +54,7 @@
     <div id="view-home" class="view-panel active space-y-8">
       
       <div>
-        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">欢迎回来，Alice 👋</h1>
+        <h1 id="home-greeting" class="text-2xl font-bold text-slate-900 tracking-tight">欢迎回来，Alice 👋</h1>
         <p id="home-subtitle" class="text-sm text-slate-500 mt-1">你当前有 <span id="home-trip-count-text" class="font-bold text-slate-800">2</span> 个正在筹备的旅程。</p>
       </div>
 
@@ -305,7 +306,6 @@
         </div>
       </div>
 
-      <!-- 隐藏状态锚点 -->
       <input type="hidden" id="origin-proposal-id" value="">
       <input type="hidden" id="editing-activity-id" value="">
 
@@ -352,6 +352,83 @@
           </button>
         </div>
       </form>
+    </div>
+
+    <!-- ---------------- [页面 4: 登录页面 (/login)] ---------------- -->
+    <div id="view-login" class="view-panel max-w-md mx-auto my-12">
+      <div class="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm space-y-6">
+        <div class="text-center space-y-2">
+          <span class="text-4xl block">🧭</span>
+          <h2 class="text-2xl font-bold tracking-tight text-slate-900">登录 TripCollab</h2>
+          <p class="text-xs text-slate-500">协同规划下一次精彩旅程</p>
+        </div>
+
+        <form onsubmit="handleLoginSubmit(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">用户名 / 42 账号 / 邮箱</label>
+            <input type="text" id="login-username" required value="Alice" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-900">
+          </div>
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="block text-xs font-semibold text-slate-700">登录密码</label>
+              <a href="javascript:void(0)" onclick="alert('测试环境无需找回密码，输入任意字符即可登录。')" class="text-[11px] text-slate-400 hover:text-slate-600">忘记密码？</a>
+            </div>
+            <input type="password" id="login-password" required value="••••••••" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-900">
+          </div>
+
+          <button type="submit" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm rounded-xl transition-colors shadow-sm">
+            立即登录
+          </button>
+        </form>
+
+        <div class="pt-4 border-t border-slate-100 text-center text-xs text-slate-500">
+          还没有账号？
+          <button onclick="switchView('register')" class="text-slate-900 font-bold underline ml-1 hover:text-blue-600">
+            免费注册新账号
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---------------- [页面 5: 注册页面 (/register)] ---------------- -->
+    <div id="view-register" class="view-panel max-w-md mx-auto my-12">
+      <div class="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm space-y-6">
+        <div class="text-center space-y-2">
+          <span class="text-4xl block">✨</span>
+          <h2 class="text-2xl font-bold tracking-tight text-slate-900">注册新账号</h2>
+          <p class="text-xs text-slate-500">加入团队，体验多成员无冲突日程协同</p>
+        </div>
+
+        <form onsubmit="handleRegisterSubmit(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">用户昵称 / 姓名 *</label>
+            <input type="text" id="reg-name" required placeholder="例如：Alice" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-900">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">42 登录名 / 电子邮箱 *</label>
+            <input type="text" id="reg-email" required placeholder="alice@student.42.fr" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-900">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">设置密码 *</label>
+            <input type="password" id="reg-password" required placeholder="至少 6 位字符" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-900">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">确认密码 *</label>
+            <input type="password" id="reg-password-confirm" required placeholder="再次输入密码" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-900">
+          </div>
+
+          <button type="submit" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm rounded-xl transition-colors shadow-sm">
+            同意条款并注册
+          </button>
+        </form>
+
+        <div class="pt-4 border-t border-slate-100 text-center text-xs text-slate-500">
+          已有账号？
+          <button onclick="switchView('login')" class="text-slate-900 font-bold underline ml-1 hover:text-blue-600">
+            直接登录
+          </button>
+        </div>
+      </div>
     </div>
 
   </main>
@@ -427,6 +504,7 @@
     var isCurrentTripArchived = false; 
     var currentActiveTripId = 'florence';
     var hasJoinedIceland = false;
+    var currentUserName = 'Alice'; // 默认登录用户
 
     // 行程、提议与活动数据集
     var tripsRegistry = {
@@ -548,6 +626,47 @@
         ]
       }
     };
+
+    // 🌟 登录表单提交处理
+    function handleLoginSubmit(event) {
+      event.preventDefault();
+      var inputName = document.getElementById('login-username').value.trim() || 'Alice';
+      currentUserName = inputName;
+      updateUserContext(currentUserName);
+      switchView('home');
+    }
+
+    // 🌟 注册表单提交处理
+    function handleRegisterSubmit(event) {
+      event.preventDefault();
+      var pwd = document.getElementById('reg-password').value;
+      var pwdConfirm = document.getElementById('reg-password-confirm').value;
+
+      if (pwd !== pwdConfirm) {
+        alert('两次输入的密码不一致，请重新检查！');
+        return;
+      }
+
+      var regName = document.getElementById('reg-name').value.trim() || '新用户';
+      currentUserName = regName;
+      updateUserContext(currentUserName);
+      alert('注册成功！已自动为你登录。');
+      switchView('home');
+    }
+
+    // 退出登录
+    function handleSignOut() {
+      if (confirm('确定要退出当前账号吗？')) {
+        switchView('login');
+      }
+    }
+
+    // 更新登录态上下文
+    function updateUserContext(name) {
+      document.getElementById('home-greeting').innerText = '欢迎回来，' + name + ' 👋';
+      var initials = name.slice(0, 2).toUpperCase();
+      document.getElementById('nav-user-avatar').innerText = initials;
+    }
 
     function renderHomeActivitiesFeed() {
       var actContainer = document.getElementById('home-activities-container');
@@ -817,7 +936,6 @@
       container.innerHTML = html;
     }
 
-    // 渲染活动列表（新增编辑与删除操作按钮）
     function renderActivities(dayNumber) {
       var trip = tripsRegistry[currentActiveTripId] || tripsRegistry.florence;
       var container = document.getElementById('activities-container');
@@ -839,7 +957,6 @@
         var act = acts[j];
         var actionButtons = '';
         
-        // 仅在非只读状态下提供编辑与删除操作
         if (!isCurrentTripArchived) {
           actionButtons = 
             '<div class="flex items-center gap-1 self-start">' +
@@ -869,7 +986,6 @@
       container.innerHTML = html;
     }
 
-    // 🌟 删除活动（若由提议排入，联动恢复该提议为可选状态）
     function deleteActivity(activityId) {
       if (isCurrentTripArchived) return;
       var trip = tripsRegistry[currentActiveTripId];
@@ -891,10 +1007,8 @@
         return;
       }
 
-      // 从活动列表移除
       trip.activities.splice(actIndex, 1);
 
-      // 如果活动关联了提议，解绑并恢复提议状态
       if (removedAct.proposalId) {
         for (var j = 0; j < trip.proposals.length; j++) {
           if (trip.proposals[j].id === removedAct.proposalId) {
@@ -911,7 +1025,6 @@
       renderHomeActivitiesFeed();
     }
 
-    // 🌟 打开编辑活动页面
     function openEditActivityPage(activityId) {
       if (isCurrentTripArchived) return;
       var trip = tripsRegistry[currentActiveTripId];
@@ -954,7 +1067,6 @@
       switchView('activity-new');
     }
 
-    // 保存活动（支持新增与编辑更新两种模式）
     function saveActivityAndReturn() {
       if (isCurrentTripArchived) return;
       var title = document.getElementById('act-title').value.trim() || '未命名活动';
@@ -968,7 +1080,6 @@
       var trip = tripsRegistry[currentActiveTripId] || tripsRegistry.florence;
 
       if (editingActId) {
-        // 编辑模式：更新既有活动
         for (var i = 0; i < trip.activities.length; i++) {
           if (trip.activities[i].id === editingActId) {
             trip.activities[i].title = title;
@@ -980,7 +1091,6 @@
           }
         }
       } else {
-        // 新增模式：创建并插入活动
         trip.activities.push({
           id: 'act-' + Date.now(),
           day: targetDay,
@@ -991,7 +1101,6 @@
           proposalId: proposalId || null
         });
 
-        // 提议标记为已排期，并变灰
         if (proposalId) {
           for (var j = 0; j < trip.proposals.length; j++) {
             if (trip.proposals[j].id === proposalId) {
@@ -1054,6 +1163,7 @@
       switchView('home');
     }
 
+    // 视图切换控制 (如果是 login 或 register，隐藏顶栏)
     function switchView(viewName) {
       var panels = document.querySelectorAll('.view-panel');
       for (var i = 0; i < panels.length; i++) {
@@ -1063,16 +1173,22 @@
       var target = document.getElementById('view-' + viewName);
       if (target) target.classList.add('active');
 
+      var nav = document.getElementById('global-navbar');
       var navHome = document.getElementById('nav-btn-home');
       var navTrip = document.getElementById('nav-btn-trip');
 
-      if (viewName === 'home') {
-        navHome.className = 'px-3 py-1.5 rounded-md bg-slate-100 text-slate-900 font-semibold';
-        navTrip.className = 'px-3 py-1.5 rounded-md hover:bg-slate-100 text-slate-500 font-medium';
-        renderHomeActivitiesFeed();
-      } else if (viewName === 'workspace') {
-        navTrip.className = 'px-3 py-1.5 rounded-md bg-slate-100 text-slate-900 font-semibold';
-        navHome.className = 'px-3 py-1.5 rounded-md hover:bg-slate-100 text-slate-500 font-medium';
+      if (viewName === 'login' || viewName === 'register') {
+        nav.classList.add('hidden');
+      } else {
+        nav.classList.remove('hidden');
+        if (viewName === 'home') {
+          navHome.className = 'px-3 py-1.5 rounded-md bg-slate-100 text-slate-900 font-semibold';
+          navTrip.className = 'px-3 py-1.5 rounded-md hover:bg-slate-100 text-slate-500 font-medium';
+          renderHomeActivitiesFeed();
+        } else if (viewName === 'workspace') {
+          navTrip.className = 'px-3 py-1.5 rounded-md bg-slate-100 text-slate-900 font-semibold';
+          navHome.className = 'px-3 py-1.5 rounded-md hover:bg-slate-100 text-slate-500 font-medium';
+        }
       }
       window.scrollTo(0, 0);
     }
