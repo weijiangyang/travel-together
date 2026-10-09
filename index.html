@@ -108,6 +108,7 @@
             </div>
             <h4 class="text-base font-bold text-slate-900 mt-4">佛罗伦萨文艺复兴漫游</h4>
             <p class="text-xs text-slate-400 mt-1">2026/10/14 - 2026/10/18 (5 天)</p>
+            <p class="text-xs text-slate-500 mt-2 line-clamp-2">文艺复兴艺术巡礼与托斯卡纳美食之旅。</p>
             <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
               <span>发起人: Alice (我)</span>
               <span>4 位成员</span>
@@ -121,6 +122,7 @@
             </div>
             <h4 class="text-base font-bold text-slate-900 mt-4">尼斯蔚蓝海岸度假</h4>
             <p class="text-xs text-slate-400 mt-1">2026/11/02 - 2026/11/06 (5 天)</p>
+            <p class="text-xs text-slate-500 mt-2 line-clamp-2">蔚蓝海岸休闲度假、阳光沙滩与老城探索。</p>
             <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
               <span>发起人: Bob</span>
               <span>2 位成员</span>
@@ -136,6 +138,7 @@
             </div>
             <h4 class="text-base font-bold text-slate-700 mt-4 group-hover:text-slate-900">罗马古城探索</h4>
             <p class="text-xs text-slate-400 mt-1">2026/04/10 - 2026/04/15 (6 天)</p>
+            <p class="text-xs text-slate-500 mt-2 line-clamp-2">古罗马历史古迹全景探索。</p>
             <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
               <span>发起人: Carol</span>
               <span class="text-slate-400">已归档封存</span>
@@ -177,6 +180,7 @@
             <span id="workspace-status-badge" class="bg-slate-100 text-slate-600 text-xs px-2.5 py-1 rounded-md font-mono">v3 (OCC)</span>
           </div>
           <p id="workspace-trip-subtitle" class="text-sm text-slate-500 mt-1">2026/10/14 - 2026/10/18 (5 天) · 4 位协同成员</p>
+          <p id="workspace-trip-desc" class="text-xs text-slate-600 mt-1 italic"></p>
         </div>
         
         <div class="flex items-center gap-3">
@@ -204,7 +208,7 @@
       <!-- 双栏核心协作布局 -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
-        <!-- 左侧：提议灵感池 -->
+        <!-- 左侧：提议灵感池 (新增提议直接插入这里) -->
         <div class="lg:col-span-5 bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
@@ -434,6 +438,8 @@
   </main>
 
   <!-- ================= 弹窗系统 ================= -->
+  
+  <!-- 解散行程弹窗 (Owner) -->
   <div id="disband-trip-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-rose-100">
       <div class="flex items-start gap-3">
@@ -450,6 +456,7 @@
     </div>
   </div>
 
+  <!-- 退出行程弹窗 (Member) -->
   <div id="leave-trip-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
       <div class="flex items-start gap-3">
@@ -466,35 +473,71 @@
     </div>
   </div>
 
+  <!-- 新建行程 Modal -->
   <div id="create-trip-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl space-y-4">
       <div class="flex items-center justify-between pb-3 border-b border-slate-100">
         <h3 class="font-bold text-base text-slate-900">发起新旅程</h3>
-        <button onclick="closeModal('create-trip-modal')" class="text-slate-400">✕</button>
+        <button onclick="closeModal('create-trip-modal')" class="text-slate-400 hover:text-slate-600">✕</button>
       </div>
-      <div class="space-y-4 text-sm">
-        <input type="text" placeholder="例如：东京美食探索之旅" class="w-full px-3 py-2 border rounded-lg">
-      </div>
-      <div class="flex items-center justify-end gap-2 pt-3 border-t">
-        <button onclick="closeModal('create-trip-modal')" class="px-4 py-2 text-xs font-medium">取消</button>
-        <button onclick="alert('行程创建成功！'); closeModal('create-trip-modal')" class="px-4 py-2 text-xs font-medium bg-slate-900 text-white rounded-lg">确认创建</button>
-      </div>
+      
+      <form onsubmit="handleCreateTripSubmit(event)" class="space-y-4 text-sm">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">行程名称 *</label>
+          <input type="text" id="new-trip-title" required placeholder="例如：东京美食探索之旅" class="w-full px-3.5 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 text-sm">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">开始日期 *</label>
+            <input type="date" id="new-trip-start" required value="2026-10-20" class="w-full px-3.5 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">结束日期 *</label>
+            <input type="date" id="new-trip-end" required value="2026-10-25" class="w-full px-3.5 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 text-sm">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">行程描述 (可选)</label>
+          <textarea id="new-trip-desc" rows="3" placeholder="简要说明本次旅行的目标、预算预期或随行注意事项..." class="w-full px-3.5 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 text-sm"></textarea>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeModal('create-trip-modal')" class="px-4 py-2 text-xs font-medium text-slate-600 hover:text-slate-900">取消</button>
+          <button type="submit" class="px-4 py-2 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white rounded-xl shadow-sm transition-colors">
+            确认创建
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
+  <!-- 🌟 新建提议 Modal (绑定真实提交事件，实时加入左栏) -->
   <div id="create-proposal-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
       <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-        <h3 class="font-bold text-base text-slate-900">提出新灵感</h3>
-        <button onclick="closeModal('create-proposal-modal')" class="text-slate-400">✕</button>
+        <h3 class="font-bold text-base text-slate-900">提出新灵感 / 景点提议</h3>
+        <button onclick="closeModal('create-proposal-modal')" class="text-slate-400 hover:text-slate-600">✕</button>
       </div>
-      <div class="space-y-4 text-sm">
-        <input type="text" placeholder="例如：米开朗基罗广场看日落" class="w-full px-3 py-2 border rounded-lg">
-      </div>
-      <div class="flex items-center justify-end gap-2 pt-3 border-t">
-        <button onclick="closeModal('create-proposal-modal')" class="px-4 py-2 text-xs font-medium">取消</button>
-        <button onclick="alert('提议发布成功！'); closeModal('create-proposal-modal')" class="px-4 py-2 text-xs font-medium bg-slate-900 text-white rounded-lg">发布提议</button>
-      </div>
+
+      <form onsubmit="handleCreateProposalSubmit(event)" class="space-y-4 text-sm">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">提议名称 / 景点 *</label>
+          <input type="text" id="new-proposal-title" required placeholder="例如：米开朗基罗广场看日落" class="w-full px-3.5 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">补充说明 (可选)</label>
+          <textarea id="new-proposal-desc" rows="3" placeholder="推荐傍晚 5 点去，带上相机，夜景非常震撼..." class="w-full px-3.5 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 text-sm"></textarea>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeModal('create-proposal-modal')" class="px-4 py-2 text-xs font-medium text-slate-600 hover:text-slate-900">取消</button>
+          <button type="submit" class="px-4 py-2 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white rounded-xl shadow-sm transition-colors">
+            发布提议
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -504,13 +547,14 @@
     var isCurrentTripArchived = false; 
     var currentActiveTripId = 'florence';
     var hasJoinedIceland = false;
-    var currentUserName = 'Alice'; // 默认登录用户
+    var currentUserName = 'Alice';
 
     // 行程、提议与活动数据集
     var tripsRegistry = {
       florence: {
         id: 'florence',
         title: '佛罗伦萨文艺复兴漫游',
+        description: '文艺复兴艺术巡礼与托斯卡纳美食之旅。',
         dates: '2026/10/14 - 2026/10/18 (5 天)',
         owner: 'Alice (我)',
         userRole: 'owner',
@@ -554,6 +598,7 @@
       nice: {
         id: 'nice',
         title: '尼斯蔚蓝海岸度假',
+        description: '蔚蓝海岸休闲度假、阳光沙滩与老城探索。',
         dates: '2026/11/02 - 2026/11/06 (5 天)',
         owner: 'Bob',
         userRole: 'member',
@@ -581,6 +626,7 @@
       iceland: {
         id: 'iceland',
         title: '冰岛环岛极光之旅',
+        description: '追逐北极光、探索黑沙滩与黄金圈壮丽风景。',
         dates: '2026/11/15 - 2026/11/22 (8 天)',
         owner: 'bob_42',
         userRole: 'member',
@@ -611,6 +657,7 @@
       rome: {
         id: 'rome',
         title: '罗马古城探索',
+        description: '古罗马历史古迹全景探索。',
         dates: '2026/04/10 - 2026/04/15 (6 天)',
         owner: 'Carol',
         userRole: 'member',
@@ -627,7 +674,121 @@
       }
     };
 
-    // 🌟 登录表单提交处理
+    // 🌟 处理发布新提议并即时渲染到左栏
+    function handleCreateProposalSubmit(event) {
+      event.preventDefault();
+      if (isCurrentTripArchived) {
+        alert('当前行程已归档封存，不可发布新提议！');
+        return;
+      }
+
+      var titleInput = document.getElementById('new-proposal-title');
+      var descInput = document.getElementById('new-proposal-desc');
+      var title = titleInput.value.trim();
+      var desc = descInput.value.trim();
+
+      if (!title) return;
+
+      var trip = tripsRegistry[currentActiveTripId];
+      if (!trip) return;
+
+      var newPropId = 'prop-' + Date.now();
+      var totalMembers = trip.members.length || 4;
+
+      // 组装新提议数据 (发起人自己默认点赞 1 票)
+      var newProposal = {
+        id: newPropId,
+        title: title,
+        author: currentUserName,
+        votes: 1,
+        total: totalMembers,
+        isConsensus: (1 >= Math.ceil(totalMembers / 2)),
+        isAdopted: false,
+        hasVoted: true,
+        adoptedDay: null,
+        notes: desc,
+        isBrandNew: true
+      };
+
+      // 置顶插入提议列表
+      trip.proposals.unshift(newProposal);
+
+      // 清空表单并关闭弹窗
+      titleInput.value = '';
+      descInput.value = '';
+      closeModal('create-proposal-modal');
+
+      // 实时全量重新渲染提议池
+      renderProposals(trip.proposals);
+
+      // 聚焦提示
+      var listContainer = document.getElementById('proposals-list-container');
+      if (listContainer) {
+        listContainer.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+
+    // 处理创建新行程提交
+    function handleCreateTripSubmit(event) {
+      event.preventDefault();
+      var title = document.getElementById('new-trip-title').value.trim();
+      var start = document.getElementById('new-trip-start').value;
+      var end = document.getElementById('new-trip-end').value;
+      var desc = document.getElementById('new-trip-desc').value.trim() || '暂无详细描述';
+
+      if (!title) return;
+
+      var newTripId = 'trip-' + Date.now();
+      var dateRange = start.replace(/-/g, '/') + ' - ' + end.replace(/-/g, '/');
+
+      tripsRegistry[newTripId] = {
+        id: newTripId,
+        title: title,
+        description: desc,
+        dates: dateRange,
+        owner: currentUserName + ' (我)',
+        userRole: 'owner',
+        status: 'upcoming',
+        icon: '✈️',
+        members: [
+          { name: currentUserName, role: 'owner', avatar: '👑' }
+        ],
+        proposals: [],
+        activities: []
+      };
+
+      closeModal('create-trip-modal');
+
+      var gridContainer = document.getElementById('trips-grid-container');
+      var createCardBtn = document.getElementById('create-trip-btn-card');
+      
+      var newTripCard = document.createElement('div');
+      newTripCard.className = 'trip-card upcoming pulse-highlight bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-300 hover:shadow-sm transition-all cursor-pointer';
+      newTripCard.onclick = function() { openTrip(newTripId, false); };
+      newTripCard.innerHTML = 
+        '<div class="flex items-start justify-between">' +
+          '<span class="text-2xl">✈️</span>' +
+          '<span class="text-xs bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded font-medium">Owner</span>' +
+        '</div>' +
+        '<h4 class="text-base font-bold text-slate-900 mt-4">' + title + '</h4>' +
+        '<p class="text-xs text-slate-400 mt-1">' + dateRange + '</p>' +
+        '<p class="text-xs text-slate-500 mt-2 line-clamp-2">' + desc + '</p>' +
+        '<div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">' +
+          '<span>发起人: ' + currentUserName + ' (我)</span>' +
+          '<span>1 位成员</span>' +
+        '</div>';
+
+      gridContainer.insertBefore(newTripCard, createCardBtn);
+
+      var countSpan = document.getElementById('upcoming-trips-count');
+      var currentCount = parseInt(countSpan.innerText, 10);
+      countSpan.innerText = (currentCount + 1).toString();
+      document.getElementById('home-trip-count-text').innerText = (currentCount + 1).toString();
+
+      alert('行程「' + title + '」创建成功！');
+      openTrip(newTripId, false);
+    }
+
     function handleLoginSubmit(event) {
       event.preventDefault();
       var inputName = document.getElementById('login-username').value.trim() || 'Alice';
@@ -636,7 +797,6 @@
       switchView('home');
     }
 
-    // 🌟 注册表单提交处理
     function handleRegisterSubmit(event) {
       event.preventDefault();
       var pwd = document.getElementById('reg-password').value;
@@ -654,14 +814,12 @@
       switchView('home');
     }
 
-    // 退出登录
     function handleSignOut() {
       if (confirm('确定要退出当前账号吗？')) {
         switchView('login');
       }
     }
 
-    // 更新登录态上下文
     function updateUserContext(name) {
       document.getElementById('home-greeting').innerText = '欢迎回来，' + name + ' 👋';
       var initials = name.slice(0, 2).toUpperCase();
@@ -671,8 +829,7 @@
     function renderHomeActivitiesFeed() {
       var actContainer = document.getElementById('home-activities-container');
       var activities = [];
-      var keys = ['florence', 'nice'];
-      if (hasJoinedIceland) keys.push('iceland');
+      var keys = Object.keys(tripsRegistry);
 
       for (var i = 0; i < keys.length; i++) {
         var trip = tripsRegistry[keys[i]];
@@ -746,6 +903,7 @@
         '</div>' +
         '<h4 class="text-base font-bold text-slate-900 mt-4 flex items-center">冰岛环岛极光之旅</h4>' +
         '<p class="text-xs text-slate-400 mt-1">2026/11/15 - 2026/11/22 (8 天)</p>' +
+        '<p class="text-xs text-slate-500 mt-2 line-clamp-2">追逐北极光、探索黑沙滩与黄金圈壮丽风景。</p>' +
         '<div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">' +
           '<span>发起人: bob_42</span>' +
           '<span class="font-bold text-emerald-700">2 项活动</span>' +
@@ -791,6 +949,7 @@
 
       document.getElementById('workspace-trip-title').innerText = trip.title;
       document.getElementById('workspace-trip-subtitle').innerText = trip.dates + ' · 发起人: ' + trip.owner + ' · ' + trip.members.length + ' 位成员';
+      document.getElementById('workspace-trip-desc').innerText = trip.description || '';
 
       var roleBadge = document.getElementById('workspace-role-badge');
       if (trip.userRole === 'owner') {
@@ -854,6 +1013,7 @@
       switchView('workspace');
     }
 
+    // 渲染提议池
     function renderProposals(proposals) {
       var container = document.getElementById('proposals-list-container');
       document.getElementById('proposal-count-badge').innerText = proposals.length;
@@ -867,6 +1027,7 @@
       for (var i = 0; i < proposals.length; i++) {
         var p = proposals[i];
         var percent = Math.min(100, Math.round((p.votes / p.total) * 100));
+        var pulseClass = p.isBrandNew ? 'pulse-highlight' : '';
 
         if (p.isAdopted) {
           html += '<div class="border border-slate-200 bg-slate-100/80 rounded-xl p-4 space-y-3 opacity-60 transition-all select-none">' +
@@ -904,11 +1065,11 @@
 
           var barColor = p.isConsensus ? 'bg-emerald-500' : 'bg-blue-500';
 
-          html += '<div class="border ' + (p.isConsensus ? 'border-emerald-300 bg-emerald-50/20' : 'border-slate-200 bg-white') + ' rounded-xl p-4 space-y-3 shadow-sm transition-all">' +
+          html += '<div class="border ' + (p.isConsensus ? 'border-emerald-300 bg-emerald-50/20' : 'border-slate-200 bg-white') + ' ' + pulseClass + ' rounded-xl p-4 space-y-3 shadow-sm transition-all">' +
             '<div class="flex items-start justify-between gap-2">' +
               '<div>' +
                 '<h4 class="text-sm font-bold text-slate-900">' + p.title + '</h4>' +
-                '<p class="text-xs text-slate-500 mt-0.5">由 ' + p.author + ' 提出</p>' +
+                '<p class="text-xs text-slate-500 mt-0.5">由 ' + p.author + ' 提出 ' + (p.notes ? '· ' + p.notes : '') + '</p>' +
               '</div>' +
               badgeHtml +
             '</div>' +
@@ -1163,7 +1324,6 @@
       switchView('home');
     }
 
-    // 视图切换控制 (如果是 login 或 register，隐藏顶栏)
     function switchView(viewName) {
       var panels = document.querySelectorAll('.view-panel');
       for (var i = 0; i < panels.length; i++) {
