@@ -6,23 +6,31 @@
   <title>TripCollab - 团队旅行协同原型系统</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    .view-container { display: none; }
-    .view-container.active { display: block; }
+    .view-panel { display: none; }
+    .view-panel.active { display: block; }
+    @keyframes pulseHighlight {
+      0% { transform: scale(0.98); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+      70% { transform: scale(1.01); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+      100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+    .pulse-highlight {
+      animation: pulseHighlight 1.2s ease-out forwards;
+    }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col font-sans">
 
   <!-- ================= 全局统一顶栏 ================= -->
-  <header id="global-navbar" class="bg-white border-b border-slate-200 sticky top-0 z-30">
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
     <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
       <div class="flex items-center gap-6">
-        <button onclick="navigate('home')" class="flex items-center gap-2 font-bold text-lg text-slate-900 tracking-tight hover:opacity-80">
+        <button onclick="switchView('home')" class="flex items-center gap-2 font-bold text-lg text-slate-900 tracking-tight hover:opacity-80">
           <span class="text-2xl">🧭</span>
           <span>TripCollab</span>
         </button>
         <nav class="hidden md:flex items-center gap-1 text-sm font-medium">
-          <button onclick="navigate('home')" id="nav-btn-home" class="px-3 py-1.5 rounded-md bg-slate-100 text-slate-900 font-semibold">大堂首页</button>
-          <button onclick="openTrip('florence', false)" id="nav-btn-trip" class="px-3 py-1.5 rounded-md hover:bg-slate-100 text-slate-500 font-medium">协同工作区</button>
+          <button onclick="switchView('home')" id="nav-btn-home" class="px-3 py-1.5 rounded-md bg-slate-100 text-slate-900 font-semibold">大堂首页</button>
+          <button onclick="openTrip(currentActiveTripId, false)" id="nav-btn-trip" class="px-3 py-1.5 rounded-md hover:bg-slate-100 text-slate-500 font-medium">协同工作区</button>
         </nav>
       </div>
       
@@ -31,8 +39,7 @@
           <span>+</span> 发起新行程
         </button>
         <div class="h-6 w-px bg-slate-200"></div>
-        <button onclick="navigate('login')" class="text-xs text-slate-500 hover:text-slate-800 font-medium">退出</button>
-        <div id="nav-user-avatar" class="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center text-xs font-semibold">
+        <div class="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center text-xs font-semibold">
           AL
         </div>
       </div>
@@ -43,18 +50,15 @@
   <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
     <!-- ---------------- [页面 1: 大堂首页 (/home)] ---------------- -->
-    <div id="view-home" class="view-container active space-y-8">
+    <div id="view-home" class="view-panel active space-y-8">
       
-      <!-- 问候与大堂状态 -->
-      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div>
-          <h1 id="home-greeting" class="text-2xl font-bold text-slate-900 tracking-tight">欢迎回来，Alice 👋</h1>
-          <p class="text-sm text-slate-500 mt-1">你当前有 1 个正在筹备的旅程，团队进展顺利。</p>
-        </div>
+      <div>
+        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">欢迎回来，Alice 👋</h1>
+        <p id="home-subtitle" class="text-sm text-slate-500 mt-1">你当前有 <span id="home-trip-count-text" class="font-bold text-slate-800">2</span> 个正在筹备的旅程。</p>
       </div>
 
       <!-- 待处理邀请通知条 -->
-      <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+      <div id="invite-banner-iceland" class="bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
         <div class="flex items-center gap-3">
           <span class="text-xl">✉️</span>
           <div>
@@ -63,61 +67,53 @@
           </div>
         </div>
         <div class="flex items-center gap-2 self-end sm:self-auto">
-          <button onclick="this.closest('.bg-amber-50').remove()" class="px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-900">忽略</button>
-          <button onclick="alert('已加入行程！'); this.closest('.bg-amber-50').remove()" class="px-3 py-1.5 text-xs font-medium bg-amber-600 hover:bg-amber-700 text-white rounded-md shadow-sm transition-colors">接受邀请</button>
+          <button onclick="document.getElementById('invite-banner-iceland').remove()" class="px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-900">忽略</button>
+          <button onclick="acceptIcelandInvite()" class="px-4 py-1.5 text-xs font-semibold bg-amber-600 hover:bg-amber-700 text-white rounded-md shadow-sm transition-colors flex items-center gap-1">
+            <span>接受邀请并加入</span> ➔
+          </button>
         </div>
       </div>
 
-      <!-- 焦点区域：下一站 Hero Focus 卡片 -->
-      <section>
-        <div class="flex items-center justify-between mb-3">
-          <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider">下一站行程</h2>
+      <!-- 跨行程活动流 -->
+      <section class="space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+          <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <span>⚡</span> 团队近期已定活动安排
+          </h2>
+          <span id="home-act-count" class="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">共 2 项活动</span>
         </div>
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
-          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div class="space-y-3">
-              <div class="flex items-center gap-2">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  ● 距出发 5 天
-                </span>
-                <span class="text-xs text-slate-400 font-medium">👑 我创建的 (Owner)</span>
-              </div>
-              <h3 class="text-2xl font-bold text-slate-900">佛罗伦萨文艺复兴漫游</h3>
-              <p class="text-sm text-slate-500">2026/10/14 - 2026/10/18 (5 天)</p>
-              <div class="flex items-center gap-6 pt-1 text-sm text-slate-600">
-                <div class="flex items-center gap-2">
-                  <span>👥</span>
-                  <span class="font-medium">4 位同行成员</span>
-                </div>
-                <div class="flex items-center gap-2">
-                  <span>💡</span>
-                  <span class="text-amber-600 font-medium">1 个新提议等待表决</span>
-                </div>
-              </div>
-            </div>
-            <button onclick="openTrip('florence', false)" class="bg-slate-900 hover:bg-slate-800 text-white font-medium text-sm px-6 py-3 rounded-xl transition-colors shadow-sm self-start lg:self-center">
-              进入协同工作区 ➔
-            </button>
-          </div>
-        </div>
+        
+        <div id="home-activities-container" class="space-y-2.5"></div>
       </section>
 
-      <!-- 全部行程平滑承接列表 -->
+      <!-- 全部行程列表 -->
       <section class="space-y-4">
         <div class="flex items-center justify-between border-b border-slate-200 pb-2">
           <div class="flex gap-6">
-            <button onclick="filterTrips('upcoming')" id="tab-upcoming" class="text-sm font-bold text-slate-900 border-b-2 border-slate-900 pb-2 -mb-2.5 transition-colors">
-              计划中与活跃 (2)
+            <button onclick="filterTripsTab('upcoming')" id="tab-upcoming" class="text-sm font-bold text-slate-900 border-b-2 border-slate-900 pb-2 -mb-2.5 transition-colors">
+              计划中与活跃 (<span id="upcoming-trips-count">2</span>)
             </button>
-            <button onclick="filterTrips('past')" id="tab-past" class="text-sm font-medium text-slate-500 hover:text-slate-800 pb-2 -mb-2.5 transition-colors">
+            <button onclick="filterTripsTab('past')" id="tab-past" class="text-sm font-medium text-slate-500 hover:text-slate-800 pb-2 -mb-2.5 transition-colors">
               往期足迹 (已归档 1)
             </button>
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          <!-- 活跃卡片 1 -->
+        <div id="trips-grid-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           <div class="trip-card upcoming bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-300 hover:shadow-sm transition-all cursor-pointer" onclick="openTrip('florence', false)">
+            <div class="flex items-start justify-between">
+              <span class="text-2xl">🏛️</span>
+              <span class="text-xs bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded font-medium">Owner</span>
+            </div>
+            <h4 class="text-base font-bold text-slate-900 mt-4">佛罗伦萨文艺复兴漫游</h4>
+            <p class="text-xs text-slate-400 mt-1">2026/10/14 - 2026/10/18 (5 天)</p>
+            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+              <span>发起人: Alice (我)</span>
+              <span>4 位成员</span>
+            </div>
+          </div>
+
+          <div class="trip-card upcoming bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-300 hover:shadow-sm transition-all cursor-pointer" onclick="openTrip('nice', false)">
             <div class="flex items-start justify-between">
               <span class="text-2xl">🏖️</span>
               <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium">Member</span>
@@ -126,25 +122,10 @@
             <p class="text-xs text-slate-400 mt-1">2026/11/02 - 2026/11/06 (5 天)</p>
             <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
               <span>发起人: Bob</span>
-              <span>3 位成员</span>
-            </div>
-          </div>
-
-          <!-- 活跃卡片 2 -->
-          <div class="trip-card upcoming bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-300 hover:shadow-sm transition-all cursor-pointer" onclick="openTrip('florence', false)">
-            <div class="flex items-start justify-between">
-              <span class="text-2xl">🏔️</span>
-              <span class="text-xs bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded font-medium">Owner</span>
-            </div>
-            <h4 class="text-base font-bold text-slate-900 mt-4">阿尔卑斯滑雪季</h4>
-            <p class="text-xs text-slate-400 mt-1">2026/12/20 - 2026/12/27 (8 天)</p>
-            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-              <span>发起人: Alice (我)</span>
               <span>2 位成员</span>
             </div>
           </div>
 
-          <!-- 往期卡片 3 (存档只读) -->
           <div class="trip-card past hidden bg-slate-100/80 border border-slate-200 rounded-xl p-5 hover:border-slate-300 transition-all cursor-pointer group" onclick="openTrip('rome', true)">
             <div class="flex items-start justify-between">
               <span class="text-2xl opacity-70">🏛️</span>
@@ -160,8 +141,7 @@
             </div>
           </div>
 
-          <!-- 快捷创建框 -->
-          <button onclick="openModal('create-trip-modal')" class="border-2 border-dashed border-slate-200 hover:border-slate-400 rounded-xl p-5 flex flex-col items-center justify-center text-center transition-colors min-h-[160px]">
+          <button id="create-trip-btn-card" onclick="openModal('create-trip-modal')" class="border-2 border-dashed border-slate-200 hover:border-slate-400 rounded-xl p-5 flex flex-col items-center justify-center text-center transition-colors min-h-[160px]">
             <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 mb-2">+</div>
             <span class="text-sm font-semibold text-slate-700">开启新的旅程计划</span>
             <span class="text-xs text-slate-400 mt-0.5">与朋友敲定日程与灵感</span>
@@ -172,30 +152,16 @@
     </div>
 
     <!-- ---------------- [页面 2: 协作工作区 (/trip/:id)] ---------------- -->
-    <div id="view-trip-workspace" class="view-container space-y-5">
+    <div id="view-workspace" class="view-panel space-y-5">
       
-      <!-- 角色模拟切换控制器 (演示专用条) -->
-      <div class="bg-indigo-50/70 border border-indigo-100 rounded-xl px-4 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-        <div class="flex items-center gap-2 text-indigo-900 font-medium">
-          <span>🎭</span>
-          <span>当前模拟登录身份：</span>
-          <span id="role-display-pill" class="bg-indigo-600 text-white px-2 py-0.5 rounded font-semibold">Alice (👑 房主/Owner)</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-slate-500">快速切换角色体验不同机制:</span>
-          <button onclick="switchCurrentUserRole('owner')" class="px-2.5 py-1 bg-white border border-indigo-200 text-indigo-700 rounded hover:bg-indigo-100 font-medium transition-colors">切换为 Owner</button>
-          <button onclick="switchCurrentUserRole('member')" class="px-2.5 py-1 bg-white border border-slate-200 text-slate-700 rounded hover:bg-slate-100 font-medium transition-colors">切换为 Member (Bob)</button>
-        </div>
-      </div>
-
       <!-- 归档只读警示横幅 -->
       <div id="archived-banner" class="hidden bg-slate-800 text-white rounded-xl px-4 py-3 flex items-center justify-between text-xs shadow-sm">
         <div class="flex items-center gap-2">
           <span class="text-base">🔒</span>
           <span class="font-semibold tracking-wide">往期足迹存档模式：</span>
-          <span class="text-slate-300">此行程已于 2026年4月 结束并正式封存。全量数据仅供查看，不可修改日程或投票。</span>
+          <span class="text-slate-300">此行程已正式封存。全量数据仅供查看，不可修改日程或投票。</span>
         </div>
-        <button onclick="navigate('home')" class="text-slate-300 hover:text-white underline ml-4 whitespace-nowrap">
+        <button onclick="switchView('home')" class="text-slate-300 hover:text-white underline ml-4 whitespace-nowrap">
           返回大堂
         </button>
       </div>
@@ -204,132 +170,63 @@
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200">
         <div>
           <div class="flex items-center gap-3">
-            <button onclick="navigate('home')" class="text-slate-400 hover:text-slate-600 text-sm font-medium">← 返回大堂</button>
+            <button onclick="switchView('home')" class="text-slate-400 hover:text-slate-600 text-sm font-medium">← 返回大堂</button>
             <h1 id="workspace-trip-title" class="text-2xl font-bold tracking-tight text-slate-900">佛罗伦萨文艺复兴漫游</h1>
+            <span id="workspace-role-badge" class="bg-amber-50 text-amber-800 border border-amber-200 text-xs px-2 py-0.5 rounded font-bold">👑 Owner</span>
             <span id="workspace-status-badge" class="bg-slate-100 text-slate-600 text-xs px-2.5 py-1 rounded-md font-mono">v3 (OCC)</span>
           </div>
           <p id="workspace-trip-subtitle" class="text-sm text-slate-500 mt-1">2026/10/14 - 2026/10/18 (5 天) · 4 位协同成员</p>
         </div>
         
-        <!-- 右侧控制区：成员头像 + 邀请 + 退出/解散机制 -->
         <div class="flex items-center gap-3">
-          <div class="flex -space-x-2 overflow-hidden items-center">
-            <span class="inline-block h-8 w-8 rounded-full ring-2 ring-white bg-slate-900 text-white text-xs font-bold flex items-center justify-center" title="Alice (Owner)">👑</span>
-            <span class="inline-block h-8 w-8 rounded-full ring-2 ring-white bg-blue-500 text-white text-xs font-bold flex items-center justify-center" title="Bob (Member)">B</span>
-            <span class="inline-block h-8 w-8 rounded-full ring-2 ring-white bg-emerald-500 text-white text-xs font-bold flex items-center justify-center" title="Carol">C</span>
-            <span class="inline-block h-8 w-8 rounded-full ring-2 ring-white bg-purple-500 text-white text-xs font-bold flex items-center justify-center" title="Dave">D</span>
-          </div>
+          <div id="workspace-members-stack" class="flex -space-x-2 overflow-hidden items-center"></div>
 
-          <button id="workspace-invite-btn" onclick="alert('邀请链接已复制到剪贴板！')" class="text-xs font-medium bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-3 py-2 rounded-lg transition-colors">
+          <!-- 邀请按钮：仅 Owner 可见 -->
+          <button id="workspace-invite-btn" onclick="alert('邀请链接已复制到剪贴板！')" class="text-xs font-medium bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-3 py-2 rounded-lg transition-colors shadow-sm">
             + 邀请伙伴
           </button>
 
-          <!-- 隔离竖线 -->
           <div id="workspace-action-divider" class="h-6 w-px bg-slate-200"></div>
 
-          <!-- 角色机制按钮：Owner 显示解散行程，普通 Member 显示退出行程 -->
+          <!-- Owner 解散行程按钮 -->
           <button id="workspace-owner-disband-btn" onclick="openModal('disband-trip-modal')" class="text-xs font-semibold bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 px-3 py-2 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm">
             <span>⚠️</span> 解散此行程
           </button>
 
-          <button id="workspace-member-leave-btn" onclick="openModal('leave-trip-modal')" class="hidden text-xs font-medium text-slate-600 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 px-3 py-2 rounded-lg transition-colors flex items-center gap-1">
+          <!-- Member 退出行程按钮 -->
+          <button id="workspace-member-leave-btn" onclick="openModal('leave-trip-modal')" class="hidden text-xs font-medium text-slate-600 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 px-3 py-2 rounded-lg transition-colors flex items-center gap-1 shadow-sm">
             <span>🚪</span> 退出行程
           </button>
         </div>
       </div>
 
-      <!-- 双栏核心协作布局 (左提议池 / 右日程时间轴) -->
+      <!-- 双栏核心协作布局 -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
-        <!-- 左侧：提议灵感池 (Proposal Pool) -->
+        <!-- 左侧：提议灵感池 -->
         <div class="lg:col-span-5 bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <span class="text-base font-bold text-slate-900">💡 提议池 (Proposal Pool)</span>
-              <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-semibold">2</span>
+              <span id="proposal-count-badge" class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-semibold">2</span>
             </div>
             <button id="workspace-new-proposal-btn" onclick="openModal('create-proposal-modal')" class="text-xs font-medium text-blue-600 hover:text-blue-800">
               + 提出灵感
             </button>
           </div>
-          <p id="workspace-proposal-hint" class="text-xs text-slate-400">门槛规则：超过半数 (≥3票) 同意即可达成共识，团队成员均可排入日程。</p>
+          <p id="workspace-proposal-hint" class="text-xs text-slate-400">门槛规则：达成共识后可排入日程；删除活动后对应提议将自动恢复。</p>
 
-          <div class="space-y-3 pt-2">
-            
-            <!-- 提议 1：达成共识 (3/4) -->
-            <div id="prop-card-p1" class="border border-emerald-200 bg-emerald-50/30 rounded-xl p-4 space-y-3 transition-all">
-              <div class="flex items-start justify-between gap-2">
-                <div>
-                  <h4 class="text-sm font-bold text-slate-950">打卡老桥 (Ponte Vecchio) 冰淇淋</h4>
-                  <p class="text-xs text-slate-500 mt-0.5">由 Bob 提出 · 3小时前</p>
-                </div>
-                <span id="prop-badge-p1" class="text-xs font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
-                  共识达成 (3/4)
-                </span>
-              </div>
-
-              <!-- 渐进条 -->
-              <div class="space-y-1">
-                <div class="flex justify-between text-[11px] font-medium text-slate-500">
-                  <span>投票进度 (75%)</span>
-                  <span class="text-emerald-700 font-semibold">已达共识门槛</span>
-                </div>
-                <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
-                  <div class="bg-emerald-500 h-2 rounded-full transition-all duration-300" style="width: 75%"></div>
-                </div>
-              </div>
-
-              <div class="flex items-center justify-between pt-2 border-t border-emerald-100">
-                <button id="prop-vote-btn-p1" onclick="alert('已投赞成票 (唯一索引保证一人一票)')" class="text-xs font-medium text-slate-700 bg-white border border-slate-200 px-2.5 py-1 rounded-md shadow-sm hover:bg-slate-50">
-                  👍 赞成 (3)
-                </button>
-                <button id="prop-btn-adopt-p1" onclick="openNewActivityPage('打卡老桥 (Ponte Vecchio) 冰淇淋', 'p1')" class="text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white px-3 py-1 rounded-md shadow-sm transition-colors">
-                  + 排入日程 ➔
-                </button>
-              </div>
-            </div>
-
-            <!-- 提议 2：未达成共识 (1/4) -->
-            <div id="prop-card-p2" class="border border-slate-200 bg-white rounded-xl p-4 space-y-3">
-              <div class="flex items-start justify-between gap-2">
-                <div>
-                  <h4 class="text-sm font-bold text-slate-950">美第奇家族礼拜堂参观</h4>
-                  <p class="text-xs text-slate-500 mt-0.5">由 Carol 提出 · 昨天</p>
-                </div>
-                <span class="text-xs font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded">
-                  进行中 (1/4)
-                </span>
-              </div>
-
-              <!-- 渐进条 -->
-              <div class="space-y-1">
-                <div class="flex justify-between text-[11px] font-medium text-slate-500">
-                  <span>投票进度 (25%)</span>
-                  <span>还需 2 票达成共识</span>
-                </div>
-                <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                  <div class="bg-blue-500 h-2 rounded-full transition-all duration-300" style="width: 25%"></div>
-                </div>
-              </div>
-
-              <div class="flex items-center justify-between pt-2 border-t border-slate-100">
-                <button id="prop-vote-btn-p2" onclick="alert('你投了赞成票！进度条将更新至 50%');" class="text-xs font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 px-2.5 py-1 rounded-md shadow-sm">
-                  👍 点赞支持 (1)
-                </button>
-                <span class="text-xs text-slate-400 font-mono">门槛: 3 票</span>
-              </div>
-            </div>
-          </div>
+          <div id="proposals-list-container" class="space-y-3 pt-2"></div>
         </div>
 
         <!-- 右侧：日程日历步进器 -->
         <div class="lg:col-span-7 space-y-5">
           <div class="flex items-center justify-between">
             <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
-              <span>📅</span> 行程日历视图 (October 2026)
+              <span>📅</span> 行程详细日程
             </h2>
             <div id="total-act-summary" class="text-xs font-medium text-slate-500">
-              共 5 天计划 · 2 个已定项
+              共 5 天计划
             </div>
           </div>
 
@@ -339,7 +236,6 @@
               <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Wed</span>
               <span class="text-lg font-black text-slate-900 my-0.5">14</span>
               <div class="flex items-center gap-1 mt-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
                 <span id="day-badge-1" class="text-[10px] font-semibold text-blue-700">2 项</span>
               </div>
             </button>
@@ -347,7 +243,6 @@
               <span class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Thu</span>
               <span class="text-lg font-bold text-slate-700 my-0.5">15</span>
               <div class="flex items-center gap-1 mt-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
                 <span id="day-badge-2" class="text-[10px] font-medium text-slate-400">0 项</span>
               </div>
             </button>
@@ -355,7 +250,6 @@
               <span class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Fri</span>
               <span class="text-lg font-bold text-slate-700 my-0.5">16</span>
               <div class="flex items-center gap-1 mt-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
                 <span id="day-badge-3" class="text-[10px] font-medium text-slate-400">0 项</span>
               </div>
             </button>
@@ -363,7 +257,6 @@
               <span class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Sat</span>
               <span class="text-lg font-bold text-slate-700 my-0.5">17</span>
               <div class="flex items-center gap-1 mt-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
                 <span id="day-badge-4" class="text-[10px] font-medium text-slate-400">0 项</span>
               </div>
             </button>
@@ -371,7 +264,6 @@
               <span class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Sun</span>
               <span class="text-lg font-bold text-slate-700 my-0.5">18</span>
               <div class="flex items-center gap-1 mt-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
                 <span id="day-badge-5" class="text-[10px] font-medium text-slate-400">返程</span>
               </div>
             </button>
@@ -379,18 +271,13 @@
 
           <!-- 当日日程列表 -->
           <div class="space-y-3">
-            <div class="flex items-center justify-between text-xs text-slate-400 px-1">
-              <span id="current-day-label">2026年10月14日 (周三) · 详细时间轴</span>
-              <span>时区: Europe/Rome</span>
-            </div>
-
             <div id="activities-container" class="space-y-3"></div>
 
-            <button id="workspace-add-activity-btn" onclick="openNewActivityPage('')" class="w-full py-3.5 border-2 border-dashed border-slate-200 hover:border-slate-400 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors flex items-center justify-center gap-2 bg-white/60 hover:bg-white">
+            <button id="workspace-add-activity-btn" onclick="openNewActivityPage('')" class="w-full py-3.5 border-2 border-dashed border-slate-200 hover:border-slate-400 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors flex items-center justify-center gap-2 bg-white shadow-sm">
               <span>+</span> 手动定义并插入新活动 (New Activity)
             </button>
             <div id="workspace-readonly-activity-hint" class="hidden w-full py-3 border border-slate-200 rounded-xl text-xs text-slate-400 text-center bg-slate-100 font-medium">
-              🔒 往期归档行程已封存，不可插入新活动
+              🔒 往期归档行程已封存，不可修改或插入活动
             </div>
           </div>
         </div>
@@ -398,38 +285,40 @@
       </div>
     </div>
 
-    <!-- ---------------- [页面 3: 插入/定义新活动专属页面] ---------------- -->
-    <div id="view-activity-new" class="view-container max-w-2xl mx-auto space-y-6">
+    <!-- ---------------- [页面 3: 插入/编辑活动专属页面] ---------------- -->
+    <div id="view-activity-new" class="view-panel max-w-2xl mx-auto space-y-6">
       <div class="flex items-center justify-between pb-4 border-b border-slate-200">
         <div>
-          <button onclick="navigate('trip-workspace')" class="text-xs font-medium text-slate-400 hover:text-slate-600 flex items-center gap-1 mb-1">
+          <button onclick="switchView('workspace')" class="text-xs font-medium text-slate-400 hover:text-slate-600 flex items-center gap-1 mb-1">
             ← 取消并返回工作区
           </button>
-          <h1 class="text-2xl font-bold tracking-tight text-slate-900">定义新活动</h1>
-          <p class="text-xs text-slate-500 mt-0.5">安排活动与时间</p>
+          <h1 id="act-form-title" class="text-2xl font-bold tracking-tight text-slate-900">定义新活动</h1>
+          <p id="act-form-desc" class="text-xs text-slate-500 mt-0.5">安排活动与时间，保存后实时反映在日程表中</p>
         </div>
         <div class="flex items-center gap-2">
-          <button onclick="navigate('trip-workspace')" class="px-4 py-2 border border-slate-200 text-slate-700 rounded-lg text-xs font-medium hover:bg-slate-50 transition-colors">
+          <button onclick="switchView('workspace')" class="px-4 py-2 border border-slate-200 text-slate-700 rounded-lg text-xs font-medium hover:bg-slate-50 transition-colors">
             取消
           </button>
           <button onclick="saveActivityAndReturn()" class="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors">
-            保存并加入日程
+            保存活动
           </button>
         </div>
       </div>
 
+      <!-- 隐藏状态锚点 -->
       <input type="hidden" id="origin-proposal-id" value="">
+      <input type="hidden" id="editing-activity-id" value="">
 
       <form onsubmit="event.preventDefault(); saveActivityAndReturn();" class="space-y-5">
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
           <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1.5">活动名称 <span class="text-rose-500">*</span></label>
+            <label class="block text-xs font-semibold text-slate-700 mb-1.5">活动名称 *</label>
             <input type="text" id="act-title" required placeholder="例如：乌菲兹美术馆参观" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-900">
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
             <div>
-              <label class="block text-xs font-semibold text-slate-700 mb-1.5">归属日期 <span class="text-rose-500">*</span></label>
+              <label class="block text-xs font-semibold text-slate-700 mb-1.5">归属日期 *</label>
               <select id="act-day-select" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white">
                 <option value="1">Day 1 (10/14 周三)</option>
                 <option value="2" selected>Day 2 (10/15 周四)</option>
@@ -455,567 +344,768 @@
         </div>
 
         <div class="flex items-center justify-end gap-3 pt-2">
-          <button type="button" onclick="navigate('trip-workspace')" class="px-5 py-2.5 border border-slate-200 text-slate-700 rounded-xl text-sm font-medium hover:bg-slate-50 transition-colors">
+          <button type="button" onclick="switchView('workspace')" class="px-5 py-2.5 border border-slate-200 text-slate-700 rounded-xl text-sm font-medium hover:bg-slate-50 transition-colors">
             放弃更改
           </button>
           <button type="submit" class="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-sm font-semibold shadow-sm transition-colors">
-            确认加入日程
+            确认保存
           </button>
         </div>
       </form>
     </div>
 
-    <!-- ---------------- [页面 4: 登录独立视图 (/login)] ---------------- -->
-    <div id="view-login" class="view-container">
-      <div class="max-w-md mx-auto my-12 bg-white border border-slate-200 rounded-2xl p-8 shadow-sm space-y-6">
-        <div class="text-center">
-          <span class="text-3xl">🧭</span>
-          <h2 class="text-xl font-bold text-slate-900 mt-2">登录 TripCollab</h2>
-          <p class="text-xs text-slate-500 mt-1">开始规划你的团队探索</p>
-        </div>
-
-        <form onsubmit="event.preventDefault(); navigate('home');" class="space-y-4">
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">邮箱 / 账号</label>
-            <input type="text" value="alice" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-900">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">密码</label>
-            <input type="password" value="••••••••" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-900">
-          </div>
-          <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-medium py-2.5 rounded-lg text-sm transition-colors shadow-sm">
-            登录系统
-          </button>
-        </form>
-      </div>
-    </div>
-
   </main>
 
-  <!-- ================= 模态弹窗系统 (含新增的退出与解散弹窗) ================= -->
-  
-  <!-- Modal 1: Owner 专属 - 解散行程高危确认弹窗 -->
+  <!-- ================= 弹窗系统 ================= -->
   <div id="disband-trip-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-rose-100">
       <div class="flex items-start gap-3">
-        <div class="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center flex-shrink-0 text-lg">
-          ⚠️
-        </div>
+        <div class="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center flex-shrink-0 text-lg">⚠️</div>
         <div>
           <h3 class="font-bold text-base text-slate-900">解散此行程？</h3>
-          <p class="text-xs text-slate-500 mt-1">
-            你正在以 <span class="font-bold text-slate-800">Owner (创建人)</span> 的身份操作解散。
-          </p>
+          <p class="text-xs text-slate-500 mt-1">你正在以 Owner 身份操作解散。</p>
         </div>
       </div>
-
-      <div class="bg-rose-50 border border-rose-200 rounded-xl p-3 text-xs text-rose-900 space-y-1">
-        <p class="font-semibold">此操作不可逆：</p>
-        <ul class="list-disc list-inside space-y-0.5 text-rose-800">
-          <li>行程及所有已安排的日程活动、投票提议都将被彻底清除；</li>
-          <li>所有同行成员（Bob, Carol, Dave 等）将被强制移出该行程。</li>
-        </ul>
-      </div>
-
       <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-        <button onclick="closeModal('disband-trip-modal')" class="px-4 py-2 text-xs font-medium text-slate-600 hover:text-slate-900">
-          取消，保留行程
-        </button>
-        <button onclick="executeDisbandTrip()" class="px-4 py-2 text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white rounded-lg shadow-sm transition-colors">
-          确认解散行程
-        </button>
+        <button onclick="closeModal('disband-trip-modal')" class="px-4 py-2 text-xs font-medium text-slate-600">取消</button>
+        <button onclick="executeDisbandTrip()" class="px-4 py-2 text-xs font-semibold bg-rose-600 text-white rounded-lg">确认解散</button>
       </div>
     </div>
   </div>
 
-  <!-- Modal 2: Member 专属 - 退出行程确认弹窗 -->
   <div id="leave-trip-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
       <div class="flex items-start gap-3">
-        <div class="w-10 h-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center flex-shrink-0 text-lg">
-          🚪
-        </div>
+        <div class="w-10 h-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center flex-shrink-0 text-lg">🚪</div>
         <div>
           <h3 class="font-bold text-base text-slate-900">退出此行程？</h3>
-          <p class="text-xs text-slate-500 mt-1">
-            退出后，你将从本次行程的成员名单中移除。
-          </p>
+          <p class="text-xs text-slate-500 mt-1">退出后，你将从本次行程的成员名单中移除。</p>
         </div>
       </div>
-
-      <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-600">
-        退出后你将无法再查看或参与该行程的提议与日程协同。若想重新加入，需要联系 Owner 重新为你发送邀请。
-      </div>
-
       <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-        <button onclick="closeModal('leave-trip-modal')" class="px-4 py-2 text-xs font-medium text-slate-600 hover:text-slate-900">
-          取消
-        </button>
-        <button onclick="executeLeaveTrip()" class="px-4 py-2 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white rounded-lg shadow-sm transition-colors">
-          确认退出
-        </button>
+        <button onclick="closeModal('leave-trip-modal')" class="px-4 py-2 text-xs font-medium text-slate-600">取消</button>
+        <button onclick="executeLeaveTrip()" class="px-4 py-2 text-xs font-semibold bg-slate-900 text-white rounded-lg">确认退出</button>
       </div>
     </div>
   </div>
 
-  <!-- Modal 3: 新建行程 Modal -->
   <div id="create-trip-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl space-y-4">
       <div class="flex items-center justify-between pb-3 border-b border-slate-100">
         <h3 class="font-bold text-base text-slate-900">发起新旅程</h3>
-        <button onclick="closeModal('create-trip-modal')" class="text-slate-400 hover:text-slate-600 text-lg">✕</button>
+        <button onclick="closeModal('create-trip-modal')" class="text-slate-400">✕</button>
       </div>
-      
       <div class="space-y-4 text-sm">
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">行程名称</label>
-          <input type="text" placeholder="例如：东京美食探索之旅" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900">
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">行程描述 (可选)</label>
-          <textarea rows="2" placeholder="简要说明本次旅行的规划、预算预期或随行注意事项..." class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 text-sm"></textarea>
-        </div>
-
-        <div>
-          <div class="flex items-center justify-between mb-2">
-            <label class="block text-xs font-semibold text-slate-700">选择行程日期范围</label>
-            <span class="text-xs font-mono text-blue-600 font-semibold bg-blue-50 px-2 py-0.5 rounded">
-              已选: 2026/10/20 - 2026/10/25 (6 天)
-            </span>
-          </div>
-
-          <div class="border border-slate-200 rounded-xl p-3 bg-slate-50/50 space-y-2">
-            <div class="flex items-center justify-between text-xs font-bold text-slate-700 px-1">
-              <span>October 2026</span>
-              <div class="flex gap-1 text-slate-400">
-                <span class="cursor-pointer hover:text-slate-600">‹</span>
-                <span class="cursor-pointer hover:text-slate-600">›</span>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-semibold text-slate-400">
-              <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
-            </div>
-
-            <div class="grid grid-cols-7 gap-1 text-center text-xs font-medium">
-              <span class="p-1.5 text-slate-300"></span><span class="p-1.5 text-slate-300"></span><span class="p-1.5 text-slate-300"></span><span class="p-1.5 text-slate-300"></span>
-              <span class="p-1.5 text-slate-600 hover:bg-slate-200 rounded-md cursor-pointer">1</span>
-              <span class="p-1.5 text-slate-600 hover:bg-slate-200 rounded-md cursor-pointer">2</span>
-              <span class="p-1.5 text-slate-600 hover:bg-slate-200 rounded-md cursor-pointer">3</span>
-
-              <span class="p-1.5 text-slate-600 hover:bg-slate-200 rounded-md cursor-pointer">4</span>
-              <span class="p-1.5 text-slate-600 hover:bg-slate-200 rounded-md cursor-pointer">5</span>
-              <span class="p-1.5 text-slate-600 hover:bg-slate-200 rounded-md cursor-pointer">6</span>
-              <span class="p-1.5 text-slate-600 hover:bg-slate-200 rounded-md cursor-pointer">7</span>
-              <span class="p-1.5 text-slate-600 hover:bg-slate-200 rounded-md cursor-pointer">8</span>
-              <span class="p-1.5 text-slate-600 hover:bg-slate-200 rounded-md cursor-pointer">9</span>
-              <span class="p-1.5 text-slate-600 hover:bg-slate-200 rounded-md cursor-pointer">10</span>
-
-              <span class="p-1.5 text-slate-600 hover:bg-slate-200 rounded-md cursor-pointer">11</span>
-              <span class="p-1.5 text-slate-600 hover:bg-slate-200 rounded-md cursor-pointer">12</span>
-              <span class="p-1.5 text-slate-600 hover:bg-slate-200 rounded-md cursor-pointer">13</span>
-              <span class="p-1.5 text-slate-600 hover:bg-slate-200 rounded-md cursor-pointer">14</span>
-              <span class="p-1.5 text-slate-600 hover:bg-slate-200 rounded-md cursor-pointer">15</span>
-              <span class="p-1.5 text-slate-600 hover:bg-slate-200 rounded-md cursor-pointer">16</span>
-              <span class="p-1.5 text-slate-600 hover:bg-slate-200 rounded-md cursor-pointer">17</span>
-
-              <span class="p-1.5 text-slate-600 hover:bg-slate-200 rounded-md cursor-pointer">18</span>
-              <span class="p-1.5 text-slate-600 hover:bg-slate-200 rounded-md cursor-pointer">19</span>
-              <span class="p-1.5 bg-slate-900 text-white rounded-l-md font-bold">20</span>
-              <span class="p-1.5 bg-slate-200 text-slate-900 font-semibold">21</span>
-              <span class="p-1.5 bg-slate-200 text-slate-900 font-semibold">22</span>
-              <span class="p-1.5 bg-slate-200 text-slate-900 font-semibold">23</span>
-              <span class="p-1.5 bg-slate-200 text-slate-900 font-semibold">24</span>
-
-              <span class="p-1.5 bg-slate-900 text-white rounded-r-md font-bold">25</span>
-              <span class="p-1.5 text-slate-600 hover:bg-slate-200 rounded-md cursor-pointer">26</span>
-              <span class="p-1.5 text-slate-600 hover:bg-slate-200 rounded-md cursor-pointer">27</span>
-              <span class="p-1.5 text-slate-600 hover:bg-slate-200 rounded-md cursor-pointer">28</span>
-              <span class="p-1.5 text-slate-600 hover:bg-slate-200 rounded-md cursor-pointer">29</span>
-              <span class="p-1.5 text-slate-600 hover:bg-slate-200 rounded-md cursor-pointer">30</span>
-              <span class="p-1.5 text-slate-600 hover:bg-slate-200 rounded-md cursor-pointer">31</span>
-            </div>
-          </div>
-        </div>
+        <input type="text" placeholder="例如：东京美食探索之旅" class="w-full px-3 py-2 border rounded-lg">
       </div>
-
-      <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
-        <button onclick="closeModal('create-trip-modal')" class="px-4 py-2 text-xs font-medium text-slate-600 hover:text-slate-900">取消</button>
-        <button onclick="alert('行程创建成功！'); closeModal('create-trip-modal')" class="px-4 py-2 text-xs font-medium bg-slate-900 text-white rounded-lg hover:bg-slate-800">
-          确认创建
-        </button>
+      <div class="flex items-center justify-end gap-2 pt-3 border-t">
+        <button onclick="closeModal('create-trip-modal')" class="px-4 py-2 text-xs font-medium">取消</button>
+        <button onclick="alert('行程创建成功！'); closeModal('create-trip-modal')" class="px-4 py-2 text-xs font-medium bg-slate-900 text-white rounded-lg">确认创建</button>
       </div>
     </div>
   </div>
 
-  <!-- Modal 4: 新建提议 Modal -->
   <div id="create-proposal-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
       <div class="flex items-center justify-between pb-3 border-b border-slate-100">
         <h3 class="font-bold text-base text-slate-900">提出新灵感</h3>
-        <button onclick="closeModal('create-proposal-modal')" class="text-slate-400 hover:text-slate-600 text-lg">✕</button>
+        <button onclick="closeModal('create-proposal-modal')" class="text-slate-400">✕</button>
       </div>
       <div class="space-y-4 text-sm">
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">提议标题</label>
-          <input type="text" placeholder="例如：米开朗基罗广场看日落" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900">
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 mb-1">补充说明 (可选)</label>
-          <textarea rows="3" placeholder="推荐下午 5 点去，景色最美" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900"></textarea>
-        </div>
+        <input type="text" placeholder="例如：米开朗基罗广场看日落" class="w-full px-3 py-2 border rounded-lg">
       </div>
-      <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
-        <button onclick="closeModal('create-proposal-modal')" class="px-4 py-2 text-xs font-medium text-slate-600">取消</button>
-        <button onclick="alert('提议发布成功！'); closeModal('create-proposal-modal')" class="px-4 py-2 text-xs font-medium bg-slate-900 text-white rounded-lg hover:bg-slate-800">
-          发布提议
-        </button>
+      <div class="flex items-center justify-end gap-2 pt-3 border-t">
+        <button onclick="closeModal('create-proposal-modal')" class="px-4 py-2 text-xs font-medium">取消</button>
+        <button onclick="alert('提议发布成功！'); closeModal('create-proposal-modal')" class="px-4 py-2 text-xs font-medium bg-slate-900 text-white rounded-lg">发布提议</button>
       </div>
     </div>
   </div>
 
-  <!-- ================= 核心数据驱动与交互脚本 ================= -->
+  <!-- ================= 纯原生 JavaScript 业务逻辑 ================= -->
   <script>
-    let currentSelectedDay = 1;
-    let isCurrentTripArchived = false; 
-    let currentUserRole = 'owner'; // 当前角色状态：'owner' | 'member'
+    var currentSelectedDay = 1;
+    var isCurrentTripArchived = false; 
+    var currentActiveTripId = 'florence';
+    var hasJoinedIceland = false;
 
-    // 活动数据列表
-    const activitiesData = [
-      {
-        id: 'act-1',
-        day: 1,
-        time: '09:30',
-        title: '圣母百花大教堂登顶',
-        notes: '需提前 15 分钟抵达门廊安检',
-        isNew: false
+    // 行程、提议与活动数据集
+    var tripsRegistry = {
+      florence: {
+        id: 'florence',
+        title: '佛罗伦萨文艺复兴漫游',
+        dates: '2026/10/14 - 2026/10/18 (5 天)',
+        owner: 'Alice (我)',
+        userRole: 'owner',
+        status: 'upcoming',
+        icon: '🏛️',
+        members: [
+          { name: 'Alice', role: 'owner', avatar: '👑' },
+          { name: 'Bob', role: 'member', avatar: 'B' },
+          { name: 'Carol', role: 'member', avatar: 'C' },
+          { name: 'Dave', role: 'member', avatar: 'D' }
+        ],
+        proposals: [
+          { 
+            id: 'p1', 
+            title: '打卡老桥 (Ponte Vecchio) 冰淇淋', 
+            author: 'Bob', 
+            votes: 3, 
+            total: 4, 
+            isConsensus: true, 
+            isAdopted: false,
+            hasVoted: true,
+            adoptedDay: null 
+          },
+          { 
+            id: 'p2', 
+            title: '美第奇家族礼拜堂参观', 
+            author: 'Carol', 
+            votes: 1, 
+            total: 4, 
+            isConsensus: false, 
+            isAdopted: false,
+            hasVoted: false,
+            adoptedDay: null 
+          }
+        ],
+        activities: [
+          { id: 'act-1', day: 1, time: '09:30', endTime: '11:30', title: '圣母百花大教堂登顶', notes: '需提前 15 分钟抵达门廊安检', proposalId: null },
+          { id: 'act-2', day: 1, time: '12:30', endTime: '14:00', title: '中央市场 T 骨牛排午餐', notes: '由投票提议一键导入', proposalId: null }
+        ]
       },
-      {
-        id: 'act-2',
-        day: 1,
-        time: '12:30',
-        title: '中央市场 T 骨牛排午餐',
-        notes: '由投票提议一键导入',
-        isNew: false
+      nice: {
+        id: 'nice',
+        title: '尼斯蔚蓝海岸度假',
+        dates: '2026/11/02 - 2026/11/06 (5 天)',
+        owner: 'Bob',
+        userRole: 'member',
+        status: 'upcoming',
+        icon: '🏖️',
+        members: [
+          { name: 'Bob', role: 'owner', avatar: '👑' },
+          { name: 'Alice', role: 'member', avatar: 'AL' }
+        ],
+        proposals: [
+          {
+            id: 'p_nice_1',
+            title: '天使湾日落漫步',
+            author: 'Bob',
+            votes: 2,
+            total: 2,
+            isConsensus: true,
+            isAdopted: false,
+            hasVoted: true,
+            adoptedDay: null
+          }
+        ],
+        activities: []
+      },
+      iceland: {
+        id: 'iceland',
+        title: '冰岛环岛极光之旅',
+        dates: '2026/11/15 - 2026/11/22 (8 天)',
+        owner: 'bob_42',
+        userRole: 'member',
+        status: 'upcoming',
+        icon: '🌋',
+        members: [
+          { name: 'bob_42', role: 'owner', avatar: '👑' },
+          { name: 'Alice', role: 'member', avatar: 'AL' }
+        ],
+        proposals: [
+          { 
+            id: 'p_ice_1', 
+            title: '蓝湖地热温泉 (Blue Lagoon) 泡汤', 
+            author: 'bob_42', 
+            votes: 2, 
+            total: 2, 
+            isConsensus: true, 
+            isAdopted: true,
+            hasVoted: true,
+            adoptedDay: 2 
+          }
+        ],
+        activities: [
+          { id: 'act-ice-1', day: 1, time: '10:00', endTime: '12:00', title: '雷克雅未克接机与极光营地集合', notes: '向导处领防寒装备', proposalId: null },
+          { id: 'act-ice-2', day: 2, time: '14:00', endTime: '17:00', title: '蓝湖地热温泉 (Blue Lagoon) 门票已确认', notes: '由 bob_42 提前从共识提议排入', proposalId: 'p_ice_1' }
+        ]
+      },
+      rome: {
+        id: 'rome',
+        title: '罗马古城探索',
+        dates: '2026/04/10 - 2026/04/15 (6 天)',
+        owner: 'Carol',
+        userRole: 'member',
+        status: 'past',
+        icon: '🏛️',
+        members: [
+          { name: 'Carol', role: 'owner', avatar: '👑' },
+          { name: 'Alice', role: 'member', avatar: 'AL' }
+        ],
+        proposals: [],
+        activities: [
+          { id: 'act-rome-1', day: 1, time: '09:00', endTime: '12:00', title: '古罗马斗兽场遗址', notes: '已归档', proposalId: null }
+        ]
       }
-    ];
-
-    const dayLabels = {
-      1: "2026年10月14日 (周三) · 详细时间轴",
-      2: "2026年10月15日 (周四) · 详细时间轴",
-      3: "2026年10月16日 (周五) · 详细时间轴",
-      4: "2026年10月17日 (周六) · 详细时间轴",
-      5: "2026年10月18日 (周日) · 详细时间轴"
     };
 
-    // 切换当前用户角色 (Owner vs Member 动态响应)
-    function switchCurrentUserRole(role) {
-      currentUserRole = role;
-      const rolePill = document.getElementById('role-display-pill');
-      const navAvatar = document.getElementById('nav-user-avatar');
-      const homeGreeting = document.getElementById('home-greeting');
+    function renderHomeActivitiesFeed() {
+      var actContainer = document.getElementById('home-activities-container');
+      var activities = [];
+      var keys = ['florence', 'nice'];
+      if (hasJoinedIceland) keys.push('iceland');
 
-      const ownerDisbandBtn = document.getElementById('workspace-owner-disband-btn');
-      const memberLeaveBtn = document.getElementById('workspace-member-leave-btn');
-
-      if (role === 'owner') {
-        rolePill.innerText = "Alice (👑 房主/Owner)";
-        rolePill.className = "bg-indigo-600 text-white px-2 py-0.5 rounded font-semibold";
-        navAvatar.innerText = "AL";
-        homeGreeting.innerText = "欢迎回来，Alice 👋";
-
-        if (!isCurrentTripArchived) {
-          ownerDisbandBtn.classList.remove('hidden');
-          memberLeaveBtn.classList.add('hidden');
-        }
-      } else {
-        rolePill.innerText = "Bob (同行成员/Member)";
-        rolePill.className = "bg-slate-700 text-white px-2 py-0.5 rounded font-semibold";
-        navAvatar.innerText = "BO";
-        homeGreeting.innerText = "欢迎回来，Bob 👋";
-
-        if (!isCurrentTripArchived) {
-          ownerDisbandBtn.classList.add('hidden');
-          memberLeaveBtn.classList.remove('hidden');
+      for (var i = 0; i < keys.length; i++) {
+        var trip = tripsRegistry[keys[i]];
+        if (trip && trip.status === 'upcoming') {
+          for (var j = 0; j < trip.activities.length; j++) {
+            var act = trip.activities[j];
+            activities.push({
+              tripId: trip.id,
+              tripTitle: trip.title,
+              tripIcon: trip.icon,
+              day: act.day,
+              time: act.time,
+              title: act.title,
+              notes: act.notes,
+              isNew: act.isNew
+            });
+          }
         }
       }
-    }
 
-    // 触发解散行程逻辑
-    function executeDisbandTrip() {
-      closeModal('disband-trip-modal');
-      alert("行程「佛罗伦萨文艺复兴漫游」已成功解散！\n数据库中对应的主表级联数据已清除，所有成员已移出。");
-      navigate('home');
-    }
+      document.getElementById('home-act-count').innerText = '共 ' + activities.length + ' 项活动';
 
-    // 触发退出行程逻辑
-    function executeLeaveTrip() {
-      closeModal('leave-trip-modal');
-      alert("你已成功退出「佛罗伦萨文艺复兴漫游」行程！\n你已从 trip_member 中移除，返回大堂。");
-      navigate('home');
-    }
-
-    // 打开行程并设定归档/活跃状态
-    function openTrip(tripType, isArchived) {
-      isCurrentTripArchived = isArchived;
-
-      const banner = document.getElementById('archived-banner');
-      const title = document.getElementById('workspace-trip-title');
-      const subtitle = document.getElementById('workspace-trip-subtitle');
-      const statusBadge = document.getElementById('workspace-status-badge');
-      const inviteBtn = document.getElementById('workspace-invite-btn');
-      const newPropBtn = document.getElementById('workspace-new-proposal-btn');
-      const propHint = document.getElementById('workspace-proposal-hint');
-      const addActBtn = document.getElementById('workspace-add-activity-btn');
-      const readOnlyActHint = document.getElementById('workspace-readonly-activity-hint');
-
-      const ownerDisbandBtn = document.getElementById('workspace-owner-disband-btn');
-      const memberLeaveBtn = document.getElementById('workspace-member-leave-btn');
-      const actionDivider = document.getElementById('workspace-action-divider');
-
-      const propVoteBtnP1 = document.getElementById('prop-vote-btn-p1');
-      const propBtnAdoptP1 = document.getElementById('prop-btn-adopt-p1');
-      const propVoteBtnP2 = document.getElementById('prop-vote-btn-p2');
-
-      if (isArchived) {
-        // --- 归档只读模式 ---
-        banner.classList.remove('hidden');
-        title.innerText = "罗马古城探索";
-        subtitle.innerText = "2026/04/10 - 2026/04/15 (6 天) · 发起人: Carol · 已封存存档";
-        statusBadge.innerText = "🔒 ARCHIVED";
-        statusBadge.className = "bg-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded-md font-semibold";
-        
-        inviteBtn.classList.add('hidden');
-        newPropBtn.classList.add('hidden');
-        ownerDisbandBtn.classList.add('hidden');
-        memberLeaveBtn.classList.add('hidden');
-        actionDivider.classList.add('hidden');
-
-        propHint.innerText = "🔒 往期归档行程：所有提议与表决记录已封存，仅供回顾。";
-        
-        propVoteBtnP1.disabled = true;
-        propVoteBtnP1.className = "text-xs font-medium text-slate-400 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-md cursor-not-allowed";
-        propBtnAdoptP1.disabled = true;
-        propBtnAdoptP1.innerText = "已封存";
-        propBtnAdoptP1.className = "text-xs font-medium text-slate-400 bg-slate-100 px-3 py-1 rounded-md cursor-not-allowed";
-
-        propVoteBtnP2.disabled = true;
-        propVoteBtnP2.className = "text-xs font-medium text-slate-400 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-md cursor-not-allowed";
-
-        addActBtn.classList.add('hidden');
-        readOnlyActHint.classList.remove('hidden');
-      } else {
-        // --- 活跃协同模式 ---
-        banner.classList.add('hidden');
-        title.innerText = "佛罗伦萨文艺复兴漫游";
-        subtitle.innerText = "2026/10/14 - 2026/10/18 (5 天) · 4 位协同成员";
-        statusBadge.innerText = "v3 (OCC)";
-        statusBadge.className = "bg-slate-100 text-slate-600 text-xs px-2.5 py-1 rounded-md font-mono";
-
-        inviteBtn.classList.remove('hidden');
-        newPropBtn.classList.remove('hidden');
-        actionDivider.classList.remove('hidden');
-        propHint.innerText = "门槛规则：超过半数 (≥3票) 同意即可达成共识，团队成员均可排入日程。";
-
-        // 按当前角色展示解散/退出
-        switchCurrentUserRole(currentUserRole);
-
-        propVoteBtnP1.disabled = false;
-        propVoteBtnP1.className = "text-xs font-medium text-slate-700 bg-white border border-slate-200 px-2.5 py-1 rounded-md shadow-sm hover:bg-slate-50";
-        propBtnAdoptP1.disabled = false;
-        propBtnAdoptP1.innerText = "+ 排入日程 ➔";
-        propBtnAdoptP1.className = "text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white px-3 py-1 rounded-md shadow-sm transition-colors";
-
-        propVoteBtnP2.disabled = false;
-        propVoteBtnP2.className = "text-xs font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 px-2.5 py-1 rounded-md shadow-sm";
-
-        addActBtn.classList.remove('hidden');
-        readOnlyActHint.classList.add('hidden');
-      }
-
-      renderActivities(currentSelectedDay);
-      navigate('trip-workspace');
-    }
-
-    function renderActivities(dayNumber) {
-      const container = document.getElementById('activities-container');
-      const filtered = activitiesData.filter(act => act.day === dayNumber);
-
-      if (filtered.length === 0) {
-        container.innerHTML = `
-          <div class="bg-white border border-slate-200 rounded-xl p-8 text-center text-slate-400">
-            <span class="text-2xl block mb-2">🏖️</span>
-            <p class="text-xs">该日暂无安排活动</p>
-          </div>
-        `;
+      if (activities.length === 0) {
+        actContainer.innerHTML = '<div class="bg-white border border-slate-200 rounded-xl p-6 text-center text-xs text-slate-400">暂无活动</div>';
         return;
       }
 
-      container.innerHTML = filtered.map(act => `
-        <div class="bg-white border ${act.isNew ? 'border-emerald-300 ring-1 ring-emerald-200 bg-emerald-50/20' : 'border-slate-200'} rounded-xl p-4 flex items-start justify-between gap-4 shadow-sm hover:border-slate-300 transition-all">
-          <div class="flex items-start gap-4">
-            <div class="text-center min-w-[50px]">
-              <span class="text-sm font-mono font-bold text-slate-900">${act.time}</span>
-              <span class="block text-[10px] text-slate-400 font-mono">TIME</span>
-            </div>
-            <div>
-              <div class="flex items-center gap-2">
-                <h4 class="text-sm font-bold text-slate-900">${act.title}</h4>
-                ${act.isNew ? '<span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded">新排入</span>' : ''}
-              </div>
-              <p class="text-xs text-slate-500 mt-1">${act.notes || '无特别说明'}</p>
-            </div>
-          </div>
-          ${isCurrentTripArchived 
-            ? '<span class="text-slate-300 text-xs font-medium">只读</span>' 
-            : `<button onclick="openNewActivityPage('${act.title}')" class="text-slate-400 hover:text-slate-600 text-xs">编辑</button>`
-          }
-        </div>
-      `).join('');
+      var html = '';
+      for (var k = 0; k < activities.length; k++) {
+        var a = activities[k];
+        html += '<div onclick="openTrip(\'' + a.tripId + '\', false)" class="bg-white border border-slate-200 rounded-xl p-4 flex items-center justify-between gap-4 hover:shadow-sm cursor-pointer transition-all">' +
+          '<div class="flex items-center gap-3.5">' +
+            '<span class="text-2xl p-2 bg-slate-100 rounded-xl">' + a.tripIcon + '</span>' +
+            '<div>' +
+              '<div class="flex items-center gap-2">' +
+                '<span class="text-xs font-bold text-slate-600">[' + a.tripTitle + ']</span>' +
+                '<h4 class="text-sm font-bold text-slate-900">' + a.title + '</h4>' +
+                (a.isNew ? '<span class="text-[10px] bg-emerald-600 text-white font-bold px-2 py-0.5 rounded-full">新加入</span>' : '') +
+              '</div>' +
+              '<p class="text-xs text-slate-500 mt-0.5">Day ' + a.day + ' · ' + a.time + ' · 备注: ' + (a.notes || '无') + '</p>' +
+            '</div>' +
+          '</div>' +
+          '<span class="text-xs font-semibold text-slate-400 hover:text-slate-800 whitespace-nowrap">查看日程 ➔</span>' +
+        '</div>';
+      }
+      actContainer.innerHTML = html;
     }
 
-    function updateDayBadges() {
-      let total = 0;
-      for (let d = 1; d <= 5; d++) {
-        const count = activitiesData.filter(a => a.day === d).length;
-        total += count;
-        const badge = document.getElementById(`day-badge-${d}`);
-        if (badge) {
-          if (count > 0) {
-            badge.innerText = `${count} 项`;
-            badge.className = "text-[10px] font-semibold text-blue-700";
-          } else {
-            badge.innerText = d === 5 ? "返程" : "0 项";
-            badge.className = "text-[10px] font-medium text-slate-400";
+    function acceptIcelandInvite() {
+      if (hasJoinedIceland) return;
+      hasJoinedIceland = true;
+
+      var banner = document.getElementById('invite-banner-iceland');
+      if (banner) banner.remove();
+
+      document.getElementById('upcoming-trips-count').innerText = '3';
+      document.getElementById('home-trip-count-text').innerText = '3';
+
+      renderHomeActivitiesFeed();
+
+      var gridContainer = document.getElementById('trips-grid-container');
+      var createCardBtn = document.getElementById('create-trip-btn-card');
+      
+      var icelandTripCard = document.createElement('div');
+      icelandTripCard.className = 'trip-card upcoming pulse-highlight bg-white border border-emerald-300 rounded-xl p-5 hover:border-emerald-400 hover:shadow-md transition-all cursor-pointer';
+      icelandTripCard.onclick = function() { openTrip('iceland', false); };
+      icelandTripCard.innerHTML = 
+        '<div class="flex items-start justify-between">' +
+          '<span class="text-2xl">🌋</span>' +
+          '<span class="text-xs bg-slate-100 text-slate-700 border border-slate-200 px-2 py-0.5 rounded font-bold">新加入 (Member)</span>' +
+        '</div>' +
+        '<h4 class="text-base font-bold text-slate-900 mt-4 flex items-center">冰岛环岛极光之旅</h4>' +
+        '<p class="text-xs text-slate-400 mt-1">2026/11/15 - 2026/11/22 (8 天)</p>' +
+        '<div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">' +
+          '<span>发起人: bob_42</span>' +
+          '<span class="font-bold text-emerald-700">2 项活动</span>' +
+        '</div>';
+
+      gridContainer.insertBefore(icelandTripCard, createCardBtn);
+      document.getElementById('home-activities-container').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function toggleVote(proposalId) {
+      if (isCurrentTripArchived) return;
+      var trip = tripsRegistry[currentActiveTripId];
+      if (!trip) return;
+
+      var targetProposal = null;
+      for (var i = 0; i < trip.proposals.length; i++) {
+        if (trip.proposals[i].id === proposalId) {
+          targetProposal = trip.proposals[i];
+          break;
+        }
+      }
+
+      if (!targetProposal || targetProposal.isAdopted) return;
+
+      if (!targetProposal.hasVoted) {
+        targetProposal.votes += 1;
+        targetProposal.hasVoted = true;
+      } else {
+        targetProposal.votes -= 1;
+        targetProposal.hasVoted = false;
+      }
+
+      var threshold = Math.ceil(targetProposal.total / 2);
+      targetProposal.isConsensus = (targetProposal.votes >= threshold);
+
+      renderProposals(trip.proposals);
+    }
+
+    function openTrip(tripId, isArchived) {
+      currentActiveTripId = tripId;
+      isCurrentTripArchived = isArchived;
+      var trip = tripsRegistry[tripId] || tripsRegistry.florence;
+
+      document.getElementById('workspace-trip-title').innerText = trip.title;
+      document.getElementById('workspace-trip-subtitle').innerText = trip.dates + ' · 发起人: ' + trip.owner + ' · ' + trip.members.length + ' 位成员';
+
+      var roleBadge = document.getElementById('workspace-role-badge');
+      if (trip.userRole === 'owner') {
+        roleBadge.innerText = '👑 Owner (房主)';
+        roleBadge.className = 'bg-amber-50 text-amber-800 border border-amber-200 text-xs px-2 py-0.5 rounded font-bold';
+      } else {
+        roleBadge.innerText = '👤 Member (普通成员)';
+        roleBadge.className = 'bg-slate-100 text-slate-600 border border-slate-200 text-xs px-2 py-0.5 rounded font-medium';
+      }
+
+      var memberStack = document.getElementById('workspace-members-stack');
+      var mHtml = '';
+      for (var i = 0; i < trip.members.length; i++) {
+        var m = trip.members[i];
+        mHtml += '<span class="inline-block h-8 w-8 rounded-full ring-2 ring-white ' + (m.role === 'owner' ? 'bg-slate-900 text-white' : 'bg-blue-500 text-white') + ' text-xs font-bold flex items-center justify-center">' + m.avatar + '</span>';
+      }
+      memberStack.innerHTML = mHtml;
+
+      renderProposals(trip.proposals);
+
+      var banner = document.getElementById('archived-banner');
+      var statusBadge = document.getElementById('workspace-status-badge');
+      var inviteBtn = document.getElementById('workspace-invite-btn');
+      var newPropBtn = document.getElementById('workspace-new-proposal-btn');
+      var addActBtn = document.getElementById('workspace-add-activity-btn');
+      var readOnlyActHint = document.getElementById('workspace-readonly-activity-hint');
+      var disbandBtn = document.getElementById('workspace-owner-disband-btn');
+      var leaveBtn = document.getElementById('workspace-member-leave-btn');
+
+      if (isArchived) {
+        banner.classList.remove('hidden');
+        statusBadge.innerText = '🔒 ARCHIVED';
+        statusBadge.className = 'bg-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded-md font-semibold';
+        inviteBtn.classList.add('hidden');
+        newPropBtn.classList.add('hidden');
+        addActBtn.classList.add('hidden');
+        readOnlyActHint.classList.remove('hidden');
+        disbandBtn.classList.add('hidden');
+        leaveBtn.classList.add('hidden');
+      } else {
+        banner.classList.add('hidden');
+        statusBadge.innerText = 'v3 (OCC)';
+        statusBadge.className = 'bg-slate-100 text-slate-600 text-xs px-2.5 py-1 rounded-md font-mono';
+        newPropBtn.classList.remove('hidden');
+        addActBtn.classList.remove('hidden');
+        readOnlyActHint.classList.add('hidden');
+
+        if (trip.userRole === 'owner') {
+          inviteBtn.classList.remove('hidden');
+          disbandBtn.classList.remove('hidden');
+          leaveBtn.classList.add('hidden');
+        } else {
+          inviteBtn.classList.add('hidden');
+          disbandBtn.classList.add('hidden');
+          leaveBtn.classList.remove('hidden');
+        }
+      }
+
+      updateAllDayBadges();
+      renderActivities(currentSelectedDay);
+      switchView('workspace');
+    }
+
+    function renderProposals(proposals) {
+      var container = document.getElementById('proposals-list-container');
+      document.getElementById('proposal-count-badge').innerText = proposals.length;
+
+      if (proposals.length === 0) {
+        container.innerHTML = '<div class="p-6 text-center text-xs text-slate-400">暂无提议灵感</div>';
+        return;
+      }
+
+      var html = '';
+      for (var i = 0; i < proposals.length; i++) {
+        var p = proposals[i];
+        var percent = Math.min(100, Math.round((p.votes / p.total) * 100));
+
+        if (p.isAdopted) {
+          html += '<div class="border border-slate-200 bg-slate-100/80 rounded-xl p-4 space-y-3 opacity-60 transition-all select-none">' +
+            '<div class="flex items-start justify-between gap-2">' +
+              '<div>' +
+                '<h4 class="text-sm font-bold text-slate-500 line-through">' + p.title + '</h4>' +
+                '<p class="text-xs text-slate-400 mt-0.5">由 ' + p.author + ' 提出 · 已排入行程</p>' +
+              '</div>' +
+              '<span class="text-xs font-semibold text-slate-500 bg-slate-200 px-2 py-0.5 rounded border border-slate-300">' +
+                '已排入日程 (Day ' + (p.adoptedDay || 2) + ')' +
+              '</span>' +
+            '</div>' +
+            '<div class="space-y-1">' +
+              '<div class="flex justify-between text-[11px] text-slate-400 font-medium">' +
+                '<span>已排期</span>' +
+                '<span>100%</span>' +
+              '</div>' +
+              '<div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">' +
+                '<div class="bg-slate-400 h-2 rounded-full" style="width: 100%"></div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="flex items-center justify-between pt-2 border-t border-slate-200 text-xs">' +
+              '<span class="text-slate-400 font-medium">👍 ' + p.votes + ' 人赞成</span>' +
+              '<button disabled class="font-medium bg-slate-200 text-slate-400 border border-slate-300 px-3 py-1 rounded cursor-not-allowed">已排入日程</button>' +
+            '</div>' +
+          '</div>';
+        } else {
+          var badgeHtml = p.isConsensus 
+            ? '<span class="text-xs font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">共识达成 (' + p.votes + '/' + p.total + ')</span>'
+            : '<span class="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded">投票中 (' + p.votes + '/' + p.total + ')</span>';
+
+          var voteBtnClass = p.hasVoted
+            ? 'font-bold text-blue-700 bg-blue-50 border border-blue-300 px-2.5 py-1 rounded shadow-sm'
+            : 'font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 px-2.5 py-1 rounded shadow-sm';
+
+          var barColor = p.isConsensus ? 'bg-emerald-500' : 'bg-blue-500';
+
+          html += '<div class="border ' + (p.isConsensus ? 'border-emerald-300 bg-emerald-50/20' : 'border-slate-200 bg-white') + ' rounded-xl p-4 space-y-3 shadow-sm transition-all">' +
+            '<div class="flex items-start justify-between gap-2">' +
+              '<div>' +
+                '<h4 class="text-sm font-bold text-slate-900">' + p.title + '</h4>' +
+                '<p class="text-xs text-slate-500 mt-0.5">由 ' + p.author + ' 提出</p>' +
+              '</div>' +
+              badgeHtml +
+            '</div>' +
+            '<div class="space-y-1">' +
+              '<div class="flex justify-between text-[11px] font-medium text-slate-500">' +
+                '<span>投票进度 (' + percent + '%)</span>' +
+                (p.isConsensus ? '<span class="text-emerald-700 font-semibold">已达共识门槛</span>' : '<span>还需 ' + (Math.ceil(p.total / 2) - p.votes) + ' 票达成共识</span>') +
+              '</div>' +
+              '<div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200/50">' +
+                '<div class="' + barColor + ' h-2 rounded-full transition-all duration-300" style="width: ' + percent + '%"></div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">' +
+              '<button onclick="toggleVote(\'' + p.id + '\')" class="' + voteBtnClass + '">' +
+                (p.hasVoted ? '👍 已投 (' + p.votes + ')' : '👍 赞成 (' + p.votes + ')') +
+              '</button>' +
+              (p.isConsensus && !isCurrentTripArchived 
+                ? '<button onclick="openNewActivityPage(\'' + p.title + '\', \'' + p.id + '\')" class="font-semibold bg-slate-900 hover:bg-slate-800 text-white px-3 py-1 rounded shadow-sm transition-colors">+ 排入日程 ➔</button>'
+                : '<span class="text-slate-400 font-mono text-[11px]">需 ≥' + Math.ceil(p.total / 2) + ' 票解锁排期</span>'
+              ) +
+            '</div>' +
+          '</div>';
+        }
+      }
+      container.innerHTML = html;
+    }
+
+    // 渲染活动列表（新增编辑与删除操作按钮）
+    function renderActivities(dayNumber) {
+      var trip = tripsRegistry[currentActiveTripId] || tripsRegistry.florence;
+      var container = document.getElementById('activities-container');
+      var acts = [];
+
+      for (var i = 0; i < trip.activities.length; i++) {
+        if (trip.activities[i].day === dayNumber) {
+          acts.push(trip.activities[i]);
+        }
+      }
+
+      if (acts.length === 0) {
+        container.innerHTML = '<div class="bg-white border border-slate-200 rounded-xl p-8 text-center text-slate-400 text-xs">该日暂无安排活动</div>';
+        return;
+      }
+
+      var html = '';
+      for (var j = 0; j < acts.length; j++) {
+        var act = acts[j];
+        var actionButtons = '';
+        
+        // 仅在非只读状态下提供编辑与删除操作
+        if (!isCurrentTripArchived) {
+          actionButtons = 
+            '<div class="flex items-center gap-1 self-start">' +
+              '<button onclick="openEditActivityPage(\'' + act.id + '\')" class="px-2.5 py-1 text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded transition-colors" title="编辑此活动">' +
+                '✏️ 编辑' +
+              '</button>' +
+              '<button onclick="deleteActivity(\'' + act.id + '\')" class="px-2.5 py-1 text-xs font-medium text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded transition-colors" title="删除此活动">' +
+                '🗑️ 删除' +
+              '</button>' +
+            '</div>';
+        }
+
+        html += '<div class="bg-white border border-slate-200 rounded-xl p-4 flex items-start justify-between gap-4 shadow-sm hover:border-slate-300 transition-colors">' +
+          '<div class="flex items-start gap-4">' +
+            '<div class="text-center min-w-[50px]">' +
+              '<span class="text-sm font-mono font-bold text-slate-900">' + act.time + '</span>' +
+              '<span class="block text-[10px] text-slate-400 font-mono">TIME</span>' +
+            '</div>' +
+            '<div>' +
+              '<h4 class="text-sm font-bold text-slate-900">' + act.title + '</h4>' +
+              '<p class="text-xs text-slate-500 mt-1">' + (act.notes || '无说明') + '</p>' +
+            '</div>' +
+          '</div>' +
+          actionButtons +
+        '</div>';
+      }
+      container.innerHTML = html;
+    }
+
+    // 🌟 删除活动（若由提议排入，联动恢复该提议为可选状态）
+    function deleteActivity(activityId) {
+      if (isCurrentTripArchived) return;
+      var trip = tripsRegistry[currentActiveTripId];
+      if (!trip) return;
+
+      var actIndex = -1;
+      var removedAct = null;
+      for (var i = 0; i < trip.activities.length; i++) {
+        if (trip.activities[i].id === activityId) {
+          actIndex = i;
+          removedAct = trip.activities[i];
+          break;
+        }
+      }
+
+      if (actIndex === -1 || !removedAct) return;
+
+      if (!confirm('确定要从日程中删除活动「' + removedAct.title + '」吗？')) {
+        return;
+      }
+
+      // 从活动列表移除
+      trip.activities.splice(actIndex, 1);
+
+      // 如果活动关联了提议，解绑并恢复提议状态
+      if (removedAct.proposalId) {
+        for (var j = 0; j < trip.proposals.length; j++) {
+          if (trip.proposals[j].id === removedAct.proposalId) {
+            trip.proposals[j].isAdopted = false;
+            trip.proposals[j].adoptedDay = null;
+            break;
           }
         }
       }
-      document.getElementById('total-act-summary').innerText = `共 5 天计划 · ${total} 个已定项`;
+
+      updateAllDayBadges();
+      renderProposals(trip.proposals);
+      renderActivities(currentSelectedDay);
+      renderHomeActivitiesFeed();
     }
 
-    function selectDay(dayNumber) {
-      currentSelectedDay = dayNumber;
+    // 🌟 打开编辑活动页面
+    function openEditActivityPage(activityId) {
+      if (isCurrentTripArchived) return;
+      var trip = tripsRegistry[currentActiveTripId];
+      if (!trip) return;
 
-      document.querySelectorAll('.day-tab').forEach(btn => {
-        btn.className = "day-tab hover:bg-white/80 rounded-xl p-3 text-center transition-all flex flex-col items-center opacity-80 hover:opacity-100";
-      });
-      const currentBtn = document.getElementById(`day-btn-${dayNumber}`);
-      if (currentBtn) {
-        currentBtn.className = "day-tab bg-white rounded-xl p-3 shadow-sm border border-slate-200 text-center transition-all flex flex-col items-center";
+      var targetAct = null;
+      for (var i = 0; i < trip.activities.length; i++) {
+        if (trip.activities[i].id === activityId) {
+          targetAct = trip.activities[i];
+          break;
+        }
       }
 
-      document.getElementById('current-day-label').innerText = dayLabels[dayNumber];
-      renderActivities(dayNumber);
+      if (!targetAct) return;
+
+      document.getElementById('act-form-title').innerText = '编辑活动';
+      document.getElementById('act-form-desc').innerText = '修改活动时间安排与备注';
+      document.getElementById('editing-activity-id').value = targetAct.id;
+      document.getElementById('origin-proposal-id').value = targetAct.proposalId || '';
+      document.getElementById('act-title').value = targetAct.title;
+      document.getElementById('act-day-select').value = targetAct.day.toString();
+      document.getElementById('act-start-time').value = targetAct.time || '14:00';
+      document.getElementById('act-end-time').value = targetAct.endTime || '15:30';
+      document.getElementById('act-notes').value = targetAct.notes || '';
+
+      switchView('activity-new');
     }
 
     function openNewActivityPage(prefillTitle, proposalId) {
-      if (isCurrentTripArchived) {
-        alert("往期足迹属于存档状态，禁止新增活动！");
-        return;
-      }
+      if (isCurrentTripArchived) return;
+      document.getElementById('act-form-title').innerText = '定义新活动';
+      document.getElementById('act-form-desc').innerText = '安排活动与时间，保存后实时反映在日程表中';
+      document.getElementById('editing-activity-id').value = '';
       document.getElementById('act-title').value = prefillTitle || '';
       document.getElementById('origin-proposal-id').value = proposalId || '';
       document.getElementById('act-day-select').value = currentSelectedDay.toString();
-      navigate('activity-new');
+      document.getElementById('act-start-time').value = '14:00';
+      document.getElementById('act-end-time').value = '15:30';
+      document.getElementById('act-notes').value = '';
+      switchView('activity-new');
     }
 
+    // 保存活动（支持新增与编辑更新两种模式）
     function saveActivityAndReturn() {
       if (isCurrentTripArchived) return;
+      var title = document.getElementById('act-title').value.trim() || '未命名活动';
+      var targetDay = parseInt(document.getElementById('act-day-select').value, 10);
+      var time = document.getElementById('act-start-time').value || '14:00';
+      var endTime = document.getElementById('act-end-time').value || '15:30';
+      var notes = document.getElementById('act-notes').value.trim() || '团队安排';
+      var proposalId = document.getElementById('origin-proposal-id').value;
+      var editingActId = document.getElementById('editing-activity-id').value;
 
-      const title = document.getElementById('act-title').value.trim() || '未命名新活动';
-      const targetDay = parseInt(document.getElementById('act-day-select').value, 10);
-      const time = document.getElementById('act-start-time').value || '14:00';
-      const notes = document.getElementById('act-notes').value.trim() || '由共识提议排入';
-      const proposalId = document.getElementById('origin-proposal-id').value;
+      var trip = tripsRegistry[currentActiveTripId] || tripsRegistry.florence;
 
-      activitiesData.push({
-        id: `act-${Date.now()}`,
-        day: targetDay,
-        time: time,
-        title: title,
-        notes: notes,
-        isNew: true
-      });
+      if (editingActId) {
+        // 编辑模式：更新既有活动
+        for (var i = 0; i < trip.activities.length; i++) {
+          if (trip.activities[i].id === editingActId) {
+            trip.activities[i].title = title;
+            trip.activities[i].day = targetDay;
+            trip.activities[i].time = time;
+            trip.activities[i].endTime = endTime;
+            trip.activities[i].notes = notes;
+            break;
+          }
+        }
+      } else {
+        // 新增模式：创建并插入活动
+        trip.activities.push({
+          id: 'act-' + Date.now(),
+          day: targetDay,
+          time: time,
+          endTime: endTime,
+          title: title,
+          notes: notes,
+          proposalId: proposalId || null
+        });
 
-      if (proposalId === 'p1') {
-        const propCard = document.getElementById('prop-card-p1');
-        const propBadge = document.getElementById('prop-badge-p1');
-        const propBtn = document.getElementById('prop-btn-adopt-p1');
-
-        if (propCard && propBadge && propBtn) {
-          propBadge.innerText = "已排入日程 (Day " + targetDay + ")";
-          propBadge.className = "text-xs font-semibold text-slate-500 bg-slate-200 px-2 py-0.5 rounded";
-          propBtn.innerText = "已排入";
-          propBtn.disabled = true;
-          propBtn.className = "text-xs font-medium text-slate-400 bg-slate-100 px-3 py-1 rounded-md cursor-not-allowed";
-          propCard.className = "border border-slate-200 bg-slate-50/50 rounded-xl p-4 space-y-3 opacity-80";
+        // 提议标记为已排期，并变灰
+        if (proposalId) {
+          for (var j = 0; j < trip.proposals.length; j++) {
+            if (trip.proposals[j].id === proposalId) {
+              trip.proposals[j].isAdopted = true;
+              trip.proposals[j].adoptedDay = targetDay;
+              break;
+            }
+          }
         }
       }
 
+      updateAllDayBadges();
       selectDay(targetDay);
-      updateDayBadges();
-      navigate('trip-workspace');
+      renderProposals(trip.proposals);
+      renderHomeActivitiesFeed();
+      switchView('workspace');
     }
 
-    function navigate(viewName) {
-      document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
-      const target = document.getElementById(`view-${viewName}`);
-      if (target) {
-        target.classList.add('active');
+    function updateAllDayBadges() {
+      var trip = tripsRegistry[currentActiveTripId] || tripsRegistry.florence;
+      var total = trip.activities.length;
+      for (var d = 1; d <= 5; d++) {
+        var count = 0;
+        for (var i = 0; i < trip.activities.length; i++) {
+          if (trip.activities[i].day === d) count++;
+        }
+        var badge = document.getElementById('day-badge-' + d);
+        if (badge) {
+          badge.innerText = count + ' 项';
+          badge.className = count > 0 ? 'text-[10px] font-semibold text-blue-700' : 'text-[10px] font-medium text-slate-400';
+        }
+      }
+      document.getElementById('total-act-summary').innerText = '共 5 天计划 · ' + total + ' 个已定项';
+    }
+
+    function selectDay(d) {
+      currentSelectedDay = d;
+      for (var i = 1; i <= 5; i++) {
+        var btn = document.getElementById('day-btn-' + i);
+        if (btn) {
+          if (i === d) {
+            btn.className = 'day-tab bg-white rounded-xl p-3 shadow-sm border border-slate-200 text-center transition-all flex flex-col items-center';
+          } else {
+            btn.className = 'day-tab hover:bg-white/80 rounded-xl p-3 text-center transition-all flex flex-col items-center opacity-80 hover:opacity-100';
+          }
+        }
+      }
+      renderActivities(d);
+    }
+
+    function executeDisbandTrip() {
+      closeModal('disband-trip-modal');
+      alert("行程已成功解散！相关数据已清除。");
+      switchView('home');
+    }
+
+    function executeLeaveTrip() {
+      closeModal('leave-trip-modal');
+      alert("你已退出此行程！");
+      switchView('home');
+    }
+
+    function switchView(viewName) {
+      var panels = document.querySelectorAll('.view-panel');
+      for (var i = 0; i < panels.length; i++) {
+        panels[i].classList.remove('active');
       }
 
-      const nav = document.getElementById('global-navbar');
-      const navBtnHome = document.getElementById('nav-btn-home');
-      const navBtnTrip = document.getElementById('nav-btn-trip');
+      var target = document.getElementById('view-' + viewName);
+      if (target) target.classList.add('active');
 
-      if (viewName === 'login') {
-        nav.classList.add('hidden');
-      } else {
-        nav.classList.remove('hidden');
-        if (viewName === 'home') {
-          navBtnHome.className = "px-3 py-1.5 rounded-md bg-slate-100 text-slate-900 font-semibold";
-          navBtnTrip.className = "px-3 py-1.5 rounded-md hover:bg-slate-100 text-slate-500 font-medium";
-        } else if (viewName === 'trip-workspace') {
-          navBtnTrip.className = "px-3 py-1.5 rounded-md bg-slate-100 text-slate-900 font-semibold";
-          navBtnHome.className = "px-3 py-1.5 rounded-md hover:bg-slate-100 text-slate-500 font-medium";
-        } else {
-          navBtnHome.className = "px-3 py-1.5 rounded-md hover:bg-slate-100 text-slate-500 font-medium";
-          navBtnTrip.className = "px-3 py-1.5 rounded-md bg-slate-100 text-slate-900 font-semibold";
-        }
+      var navHome = document.getElementById('nav-btn-home');
+      var navTrip = document.getElementById('nav-btn-trip');
+
+      if (viewName === 'home') {
+        navHome.className = 'px-3 py-1.5 rounded-md bg-slate-100 text-slate-900 font-semibold';
+        navTrip.className = 'px-3 py-1.5 rounded-md hover:bg-slate-100 text-slate-500 font-medium';
+        renderHomeActivitiesFeed();
+      } else if (viewName === 'workspace') {
+        navTrip.className = 'px-3 py-1.5 rounded-md bg-slate-100 text-slate-900 font-semibold';
+        navHome.className = 'px-3 py-1.5 rounded-md hover:bg-slate-100 text-slate-500 font-medium';
       }
       window.scrollTo(0, 0);
     }
 
-    function filterTrips(type) {
-      const tabUpcoming = document.getElementById('tab-upcoming');
-      const tabPast = document.getElementById('tab-past');
-      const upcomingCards = document.querySelectorAll('.trip-card.upcoming');
-      const pastCards = document.querySelectorAll('.trip-card.past');
+    function filterTripsTab(type) {
+      var tabUpcoming = document.getElementById('tab-upcoming');
+      var tabPast = document.getElementById('tab-past');
+      var upcomingCards = document.querySelectorAll('.trip-card.upcoming');
+      var pastCards = document.querySelectorAll('.trip-card.past');
 
       if (type === 'upcoming') {
-        tabUpcoming.className = "text-sm font-bold text-slate-900 border-b-2 border-slate-900 pb-2 -mb-2.5 transition-colors";
-        tabPast.className = "text-sm font-medium text-slate-500 hover:text-slate-800 pb-2 -mb-2.5 transition-colors";
-        upcomingCards.forEach(c => c.classList.remove('hidden'));
-        pastCards.forEach(c => c.classList.add('hidden'));
+        tabUpcoming.className = 'text-sm font-bold text-slate-900 border-b-2 border-slate-900 pb-2 -mb-2.5 transition-colors';
+        tabPast.className = 'text-sm font-medium text-slate-500 hover:text-slate-800 pb-2 -mb-2.5 transition-colors';
+        for (var i = 0; i < upcomingCards.length; i++) upcomingCards[i].classList.remove('hidden');
+        for (var j = 0; j < pastCards.length; j++) pastCards[j].classList.add('hidden');
       } else {
-        tabPast.className = "text-sm font-bold text-slate-900 border-b-2 border-slate-900 pb-2 -mb-2.5 transition-colors";
-        tabUpcoming.className = "text-sm font-medium text-slate-500 hover:text-slate-800 pb-2 -mb-2.5 transition-colors";
-        upcomingCards.forEach(c => c.classList.add('hidden'));
-        pastCards.forEach(c => c.classList.remove('hidden'));
+        tabPast.className = 'text-sm font-bold text-slate-900 border-b-2 border-slate-900 pb-2 -mb-2.5 transition-colors';
+        tabUpcoming.className = 'text-sm font-medium text-slate-500 hover:text-slate-800 pb-2 -mb-2.5 transition-colors';
+        for (var k = 0; k < upcomingCards.length; k++) upcomingCards[k].classList.add('hidden');
+        for (var l = 0; l < pastCards.length; l++) pastCards[l].classList.remove('hidden');
       }
     }
 
-    function openModal(modalId) {
-      document.getElementById(modalId).classList.remove('hidden');
+    function openModal(id) {
+      document.getElementById(id).classList.remove('hidden');
     }
-    function closeModal(modalId) {
-      document.getElementById(modalId).classList.add('hidden');
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
     }
 
-    // 初始化运行
+    // 初始化渲染
+    renderHomeActivitiesFeed();
     selectDay(1);
-    updateDayBadges();
   </script>
 
 </body>
