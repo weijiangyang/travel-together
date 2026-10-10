@@ -65,7 +65,9 @@
           <div>
             <span class="text-sm font-medium text-amber-900">bob_42 邀请你加入行程</span>
             <span class="text-sm font-bold text-amber-950 ml-1">「冰岛环岛极光之旅」</span>
-            <span class="text-xs text-amber-800 ml-1">📍 冰岛·雷克雅未克</span>
+            <button onclick="openMap('冰岛 雷克雅未克', event)" class="text-xs text-amber-800 ml-2 hover:underline inline-flex items-center gap-0.5" title="在地图中查看">
+              <span>📍 冰岛·雷克雅未克</span><span class="text-[10px]">↗</span>
+            </button>
           </div>
         </div>
         <div class="flex items-center gap-2 self-end sm:self-auto">
@@ -108,8 +110,10 @@
               <span class="text-xs bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded font-medium">Owner</span>
             </div>
             <h4 class="text-base font-bold text-slate-900 mt-4">佛罗伦萨文艺复兴漫游</h4>
-            <div class="flex items-center gap-1.5 mt-1 text-xs text-blue-600 font-medium">
-              <span>📍 意大利·佛罗伦萨</span>
+            <div class="flex items-center gap-1.5 mt-1 text-xs">
+              <button onclick="openMap('意大利 佛罗伦萨', event)" class="text-blue-600 hover:text-blue-800 font-medium hover:underline inline-flex items-center gap-0.5">
+                <span>📍 意大利·佛罗伦萨</span><span class="text-[10px]">↗</span>
+              </button>
             </div>
             <p class="text-xs text-slate-400 mt-1">2026/10/14 - 2026/10/18 (5 天)</p>
             <p class="text-xs text-slate-500 mt-2 line-clamp-2">文艺复兴艺术巡礼与托斯卡纳美食之旅。</p>
@@ -125,8 +129,10 @@
               <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium">Member</span>
             </div>
             <h4 class="text-base font-bold text-slate-900 mt-4">尼斯蔚蓝海岸度假</h4>
-            <div class="flex items-center gap-1.5 mt-1 text-xs text-blue-600 font-medium">
-              <span>📍 法国·尼斯</span>
+            <div class="flex items-center gap-1.5 mt-1 text-xs">
+              <button onclick="openMap('法国 尼斯', event)" class="text-blue-600 hover:text-blue-800 font-medium hover:underline inline-flex items-center gap-0.5">
+                <span>📍 法国·尼斯</span><span class="text-[10px]">↗</span>
+              </button>
             </div>
             <p class="text-xs text-slate-400 mt-1">2026/11/02 - 2026/11/06 (5 天)</p>
             <p class="text-xs text-slate-500 mt-2 line-clamp-2">蔚蓝海岸休闲度假、阳光沙滩与老城探索。</p>
@@ -144,8 +150,10 @@
               </span>
             </div>
             <h4 class="text-base font-bold text-slate-700 mt-4 group-hover:text-slate-900">罗马古城探索</h4>
-            <div class="flex items-center gap-1.5 mt-1 text-xs text-slate-400 font-medium">
-              <span>📍 意大利·罗马</span>
+            <div class="flex items-center gap-1.5 mt-1 text-xs">
+              <button onclick="openMap('意大利 罗马', event)" class="text-slate-500 hover:text-blue-600 font-medium hover:underline inline-flex items-center gap-0.5">
+                <span>📍 意大利·罗马</span><span class="text-[10px]">↗</span>
+              </button>
             </div>
             <p class="text-xs text-slate-400 mt-1">2026/04/10 - 2026/04/15 (6 天)</p>
             <p class="text-xs text-slate-500 mt-2 line-clamp-2">古罗马历史古迹全景探索。</p>
@@ -186,7 +194,9 @@
           <div class="flex items-center gap-3 flex-wrap">
             <button onclick="switchView('home')" class="text-slate-400 hover:text-slate-600 text-sm font-medium">← 返回大堂</button>
             <h1 id="workspace-trip-title" class="text-2xl font-bold tracking-tight text-slate-900">佛罗伦萨文艺复兴漫游</h1>
-            <span id="workspace-trip-dest-badge" class="bg-blue-50 text-blue-700 border border-blue-200 text-xs px-2.5 py-0.5 rounded-md font-medium">📍 目的地</span>
+            <button id="workspace-trip-dest-badge" onclick="openTripDestinationMap(event)" class="bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 text-xs px-2.5 py-0.5 rounded-md font-medium inline-flex items-center gap-1 transition-colors" title="在地图中探索此目的地">
+              <span>📍 目的地</span><span class="text-[10px]">↗</span>
+            </button>
             <span id="workspace-role-badge" class="bg-amber-50 text-amber-800 border border-amber-200 text-xs px-2 py-0.5 rounded font-bold">👑 Owner</span>
             <span id="workspace-status-badge" class="bg-slate-100 text-slate-600 text-xs px-2.5 py-1 rounded-md font-mono">v3 (OCC)</span>
           </div>
@@ -306,7 +316,7 @@
             ← 取消并返回工作区
           </button>
           <h1 id="act-form-title" class="text-2xl font-bold tracking-tight text-slate-900">定义新活动</h1>
-          <p id="act-form-desc" class="text-xs text-slate-500 mt-0.5">安排活动与时间，保存后实时反映在日程表中</p>
+          <p id="act-form-desc" class="text-xs text-slate-500 mt-0.5">安排活动地点与时间，保存后实时反映在日程表中</p>
         </div>
         <div class="flex items-center gap-2">
           <button onclick="switchView('workspace')" class="px-4 py-2 border border-slate-200 text-slate-700 rounded-lg text-xs font-medium hover:bg-slate-50 transition-colors">
@@ -328,13 +338,13 @@
             <input type="text" id="act-title" required placeholder="例如：乌菲兹美术馆参观" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-900">
           </div>
 
-          <!-- 🌟 新增：活动地点（Location） -->
           <div>
             <label class="block text-xs font-semibold text-slate-700 mb-1.5">活动地点 (Location)</label>
             <div class="relative">
               <span class="absolute left-3.5 top-2.5 text-slate-400">📍</span>
               <input type="text" id="act-location" placeholder="例如：Piazzale Michelangelo / 乌菲兹美术馆正门" class="w-full pl-9 pr-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-900">
             </div>
+            <p class="text-[11px] text-slate-400 mt-1">保存后在卡片中点击此地址可直接在新窗口唤起地图导航。</p>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
@@ -475,7 +485,21 @@
         </div>
         <div>
           <span class="text-slate-400 block font-medium">活动地点</span>
-          <span id="detail-act-location" class="font-bold text-blue-700 text-sm mt-0.5 block truncate">未设定</span>
+          <div id="detail-act-location-box" class="mt-0.5">
+            <!-- 动态生成带地图链接的地点 -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 审计人员足迹卡片 -->
+      <div class="bg-slate-100/70 p-3 rounded-xl flex items-center justify-between text-xs text-slate-600 border border-slate-200/60">
+        <div>
+          <span class="text-slate-400 block text-[10px]">创建信息</span>
+          <span id="detail-act-creator" class="font-semibold text-slate-800 mt-0.5 block">Alice</span>
+        </div>
+        <div class="text-right">
+          <span class="text-slate-400 block text-[10px]">最近更新</span>
+          <span id="detail-act-updater" class="font-semibold text-slate-800 mt-0.5 block">Alice (2026/10/10)</span>
         </div>
       </div>
 
@@ -617,12 +641,30 @@
     var hasJoinedIceland = false;
     var currentUserName = 'Alice';
 
-    // 核心数据集 (Activity 增加 location 地点)
+    // 🌟 全局地图直达导航函数 (自动转义并阻止冒泡)
+    function openMap(query, event) {
+      if (event) {
+        event.stopPropagation();
+      }
+      if (!query) return;
+      var url = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(query);
+      window.open(url, '_blank');
+    }
+
+    function openTripDestinationMap(event) {
+      if (event) event.stopPropagation();
+      var trip = tripsRegistry[currentActiveTripId];
+      if (trip && trip.destination) {
+        openMap(trip.destination, event);
+      }
+    }
+
+    // 核心数据集
     var tripsRegistry = {
       florence: {
         id: 'florence',
         title: '佛罗伦萨文艺复兴漫游',
-        destination: '意大利·佛罗伦萨',
+        destination: '意大利 佛罗伦萨',
         description: '文艺复兴艺术巡礼与托斯卡纳美食之旅。',
         dates: '2026/10/14 - 2026/10/18 (5 天)',
         owner: 'Alice (我)',
@@ -664,14 +706,38 @@
           }
         ],
         activities: [
-          { id: 'act-1', day: 1, time: '09:30', endTime: '11:30', title: '圣母百花大教堂登顶', location: 'Piazza del Duomo, 50122 Firenze', notes: '已全额付款预订。需提前 15 分钟抵达门廊安检，请勿穿无袖背心或膝上短裤。', proposalId: null },
-          { id: 'act-2', day: 1, time: '12:30', endTime: '14:00', title: '中央市场 T 骨牛排午餐', location: 'Piazza del Mercato Centrale 2楼', notes: '已在二楼 Da Nerbone 订长桌包厢，由投票提议一键导入。', proposalId: 'p1' }
+          { 
+            id: 'act-1', 
+            day: 1, 
+            time: '09:30', 
+            endTime: '11:30', 
+            title: '圣母百花大教堂登顶', 
+            location: 'Piazza del Duomo, 50122 Firenze', 
+            notes: '已全额付款预订。需提前 15 分钟抵达门廊安检，请勿穿无袖背心或膝上短裤。', 
+            proposalId: null,
+            createdBy: 'Alice',
+            updatedBy: 'Bob',
+            updatedAt: '10/10 14:20'
+          },
+          { 
+            id: 'act-2', 
+            day: 1, 
+            time: '12:30', 
+            endTime: '14:00', 
+            title: '中央市场 T 骨牛排午餐', 
+            location: 'Piazza del Mercato Centrale 2楼 Da Nerbone', 
+            notes: '已在二楼 Da Nerbone 订长桌包厢，由投票提议一键导入。', 
+            proposalId: 'p1',
+            createdBy: 'Bob',
+            updatedBy: null,
+            updatedAt: null
+          }
         ]
       },
       nice: {
         id: 'nice',
         title: '尼斯蔚蓝海岸度假',
-        destination: '法国·尼斯',
+        destination: '法国 尼斯',
         description: '蔚蓝海岸休闲度假、阳光沙滩与老城探索。',
         dates: '2026/11/02 - 2026/11/06 (5 天)',
         owner: 'Bob',
@@ -701,7 +767,7 @@
       iceland: {
         id: 'iceland',
         title: '冰岛环岛极光之旅',
-        destination: '冰岛·雷克雅未克',
+        destination: '冰岛 雷克雅未克',
         description: '追逐北极光、探索黑沙滩与黄金圈壮丽风景。',
         dates: '2026/11/15 - 2026/11/22 (8 天)',
         owner: 'bob_42',
@@ -727,14 +793,38 @@
           }
         ],
         activities: [
-          { id: 'act-ice-1', day: 1, time: '10:00', endTime: '12:00', title: '雷克雅未克接机与极光营地集合', location: '凯夫拉维克国际机场 1号出口', notes: '向导处领防寒装备，确认睡袋保暖级别。', proposalId: null },
-          { id: 'act-ice-2', day: 2, time: '14:00', endTime: '17:00', title: '蓝湖地热温泉 (Blue Lagoon) 门票已确认', location: 'Norðurljósavegur 9, Grindavík', notes: '由 bob_42 提前从共识提议排入。硅泥面膜包含在内。', proposalId: 'p_ice_1' }
+          { 
+            id: 'act-ice-1', 
+            day: 1, 
+            time: '10:00', 
+            endTime: '12:00', 
+            title: '雷克雅未克接机与极光营地集合', 
+            location: '凯夫拉维克国际机场 1号出口', 
+            notes: '向导处领防寒装备，确认睡袋保暖级别。', 
+            proposalId: null,
+            createdBy: 'bob_42',
+            updatedBy: null,
+            updatedAt: null
+          },
+          { 
+            id: 'act-ice-2', 
+            day: 2, 
+            time: '14:00', 
+            endTime: '17:00', 
+            title: '蓝湖地热温泉 (Blue Lagoon) 门票已确认', 
+            location: 'Norðurljósavegur 9, 240 Grindavík', 
+            notes: '由 bob_42 提前从共识提议排入。硅泥面膜包含在内。', 
+            proposalId: 'p_ice_1',
+            createdBy: 'bob_42',
+            updatedBy: null,
+            updatedAt: null
+          }
         ]
       },
       rome: {
         id: 'rome',
         title: '罗马古城探索',
-        destination: '意大利·罗马',
+        destination: '意大利 罗马',
         description: '古罗马历史古迹全景探索。',
         dates: '2026/04/10 - 2026/04/15 (6 天)',
         owner: 'Carol',
@@ -747,7 +837,19 @@
         ],
         proposals: [],
         activities: [
-          { id: 'act-rome-1', day: 1, time: '09:00', endTime: '12:00', title: '古罗马斗兽场遗址', location: 'Piazza del Colosseo, 1, Roma', notes: '已归档', proposalId: null }
+          { 
+            id: 'act-rome-1', 
+            day: 1, 
+            time: '09:00', 
+            endTime: '12:00', 
+            title: '古罗马斗兽场遗址', 
+            location: 'Piazza del Colosseo, 1, 00184 Roma', 
+            notes: '已归档', 
+            proposalId: null,
+            createdBy: 'Carol',
+            updatedBy: null,
+            updatedAt: null
+          }
         ]
       }
     };
@@ -760,12 +862,32 @@
       var act = trip.activities.find(function(a) { return a.id === actId; });
       if (!act) return;
 
-      document.getElementById('detail-act-trip').innerText = trip.title + ' (📍' + (trip.destination || '未设定') + ')';
+      document.getElementById('detail-act-trip').innerText = trip.title;
       document.getElementById('detail-act-day-badge').innerText = 'Day ' + act.day;
       document.getElementById('detail-act-title').innerText = act.title;
       document.getElementById('detail-act-time').innerText = act.time + (act.endTime ? ' - ' + act.endTime : '');
-      document.getElementById('detail-act-location').innerText = act.location ? ('📍 ' + act.location) : '未设定具体地点';
+      
+      var locBox = document.getElementById('detail-act-location-box');
+      if (act.location) {
+        locBox.innerHTML = 
+          '<div class="flex items-center gap-1.5 flex-wrap">' +
+            '<span class="font-bold text-slate-800 text-sm">' + act.location + '</span>' +
+            '<button onclick="openMap(\'' + act.location.replace(/'/g, "\\'") + '\', event)" class="text-xs text-blue-600 hover:text-blue-800 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded font-semibold inline-flex items-center gap-0.5 transition-colors">' +
+              '<span>🗺️ 在地图查看</span><span>↗</span>' +
+            '</button>' +
+          '</div>';
+      } else {
+        locBox.innerHTML = '<span class="text-slate-400 text-sm">未设定地点</span>';
+      }
+
       document.getElementById('detail-act-notes').innerText = act.notes || '暂无说明与注意事项';
+
+      document.getElementById('detail-act-creator').innerText = '👤 由 ' + (act.createdBy || '未知用户') + ' 创建';
+      if (act.updatedBy) {
+        document.getElementById('detail-act-updater').innerText = '✏️ 最近由 ' + act.updatedBy + ' 修改' + (act.updatedAt ? (' (' + act.updatedAt + ')') : '');
+      } else {
+        document.getElementById('detail-act-updater').innerText = '尚无后续修改';
+      }
 
       var editBtn = document.getElementById('detail-act-edit-btn');
       if (trip.status === 'past' || isCurrentTripArchived) {
@@ -1092,8 +1214,10 @@
           '<span class="text-xs bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded font-medium">Owner</span>' +
         '</div>' +
         '<h4 class="text-base font-bold text-slate-900 mt-4">' + title + '</h4>' +
-        '<div class="flex items-center gap-1 mt-1 text-xs text-blue-600 font-medium">' +
-          '<span>📍 ' + destination + '</span>' +
+        '<div class="flex items-center gap-1 mt-1 text-xs">' +
+          '<button onclick="openMap(\'' + destination.replace(/'/g, "\\'") + '\', event)" class="text-blue-600 hover:text-blue-800 font-medium hover:underline inline-flex items-center gap-0.5">' +
+            '<span>📍 ' + destination + '</span><span class="text-[10px]">↗</span>' +
+          '</button>' +
         '</div>' +
         '<p class="text-xs text-slate-400 mt-1">' + dateRange + '</p>' +
         '<p class="text-xs text-slate-500 mt-2 line-clamp-2">' + desc + '</p>' +
@@ -1150,7 +1274,7 @@
       document.getElementById('nav-user-avatar').innerText = initials;
     }
 
-    // 渲染首页活动流
+    // 🌟 渲染首页活动流（地址直达地图）
     function renderHomeActivitiesFeed() {
       var actContainer = document.getElementById('home-activities-container');
       var activities = [];
@@ -1173,6 +1297,9 @@
               location: act.location,
               notes: act.notes,
               proposalId: act.proposalId,
+              createdBy: act.createdBy || 'Alice',
+              updatedBy: act.updatedBy,
+              updatedAt: act.updatedAt,
               isNew: act.isNew
             });
           }
@@ -1200,17 +1327,29 @@
               '⏰ 时间: <strong class="text-white">' + a.time + ' ~ ' + (a.endTime || '结束') + '</strong>' +
             '</div>' +
             (a.location ? '<div class="text-xs text-blue-300 mb-2 truncate">📍 地点: ' + a.location + '</div>' : '') +
-            '<div class="text-xs text-slate-300 leading-relaxed bg-slate-800/90 p-2 rounded-lg border border-slate-700 mb-1">' +
+            '<div class="text-xs text-slate-300 leading-relaxed bg-slate-800/90 p-2 rounded-lg border border-slate-700 mb-2">' +
               (a.notes || '暂无说明细节') +
             '</div>' +
-            (a.proposalId ? '<div class="text-[10px] text-amber-300 pt-1">✨ 由共识提议一键转化</div>' : '') +
+            '<div class="pt-1.5 border-t border-slate-700 flex items-center justify-between text-[10px] text-slate-400">' +
+              '<span>创建: ' + (a.createdBy || '未知') + '</span>' +
+              (a.updatedBy ? '<span class="text-amber-300">✏️ ' + a.updatedBy + ' 调整</span>' : '<span>未修改</span>') +
+            '</div>' +
           '</div>';
+
+        var auditBadge = a.updatedBy 
+          ? '<span class="text-[11px] font-semibold text-amber-700 bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-md flex items-center gap-1"><span>✏️</span>由 ' + a.updatedBy + ' 修改</span>'
+          : '<span class="text-[11px] font-medium text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md flex items-center gap-1"><span>👤</span>由 ' + a.createdBy + ' 创建</span>';
+
+        // 🌟 首页活动地点一键调起地图链接
+        var locLinkHtml = a.location 
+          ? ' · <button onclick="openMap(\'' + a.location.replace(/'/g, "\\'") + '\', event)" class="text-blue-600 hover:text-blue-800 hover:underline font-medium inline-flex items-center gap-0.5"><span>📍 ' + a.location + '</span><span class="text-[10px]">↗</span></button>' 
+          : '';
 
         html += '<div onclick="openTrip(\'' + a.tripId + '\', false)" class="bg-white border border-slate-200 rounded-xl p-4 flex items-center justify-between gap-4 hover:shadow-sm hover:border-slate-300 cursor-pointer transition-all">' +
           '<div class="flex items-center gap-3.5">' +
             '<span class="text-2xl p-2 bg-slate-100 rounded-xl">' + a.tripIcon + '</span>' +
             '<div>' +
-              '<div class="flex items-center gap-2">' +
+              '<div class="flex items-center gap-2 flex-wrap">' +
                 '<span class="text-xs font-bold text-slate-600">[' + a.tripTitle + ']</span>' +
                 '<div class="relative group inline-block" onclick="event.stopPropagation()">' +
                   '<h4 onclick="openActivityDetailModal(\'' + a.tripId + '\', \'' + a.id + '\')" class="text-sm font-bold text-slate-900 inline-flex items-center gap-1 hover:text-blue-600 cursor-pointer hover:underline">' + 
@@ -1220,10 +1359,11 @@
                   homeFlyoutHtml +
                 '</div>' +
                 (a.isNew ? '<span class="text-[10px] bg-emerald-600 text-white font-bold px-2 py-0.5 rounded-full">新加入</span>' : '') +
+                auditBadge +
               '</div>' +
               '<p class="text-xs text-slate-500 mt-0.5">' +
                 'Day ' + a.day + ' · ' + a.time +
-                (a.location ? (' · 📍 ' + a.location) : '') +
+                locLinkHtml +
                 ' · 备注: ' + (a.notes || '无') +
               '</p>' +
             '</div>' +
@@ -1258,8 +1398,10 @@
           '<span class="text-xs bg-slate-100 text-slate-700 border border-slate-200 px-2 py-0.5 rounded font-bold">新加入 (Member)</span>' +
         '</div>' +
         '<h4 class="text-base font-bold text-slate-900 mt-4 flex items-center">冰岛环岛极光之旅</h4>' +
-        '<div class="flex items-center gap-1.5 mt-1 text-xs text-blue-600 font-medium">' +
-          '<span>📍 冰岛·雷克雅未克</span>' +
+        '<div class="flex items-center gap-1 mt-1 text-xs">' +
+          '<button onclick="openMap(\'冰岛 雷克雅未克\', event)" class="text-blue-600 hover:text-blue-800 font-medium hover:underline inline-flex items-center gap-0.5">' +
+            '<span>📍 冰岛·雷克雅未克</span><span class="text-[10px]">↗</span>' +
+          '</button>' +
         '</div>' +
         '<p class="text-xs text-slate-400 mt-1">2026/11/15 - 2026/11/22 (8 天)</p>' +
         '<p class="text-xs text-slate-500 mt-2 line-clamp-2">追逐北极光、探索黑沙滩与黄金圈壮丽风景。</p>' +
@@ -1278,7 +1420,15 @@
       var trip = tripsRegistry[tripId] || tripsRegistry.florence;
 
       document.getElementById('workspace-trip-title').innerText = trip.title;
-      document.getElementById('workspace-trip-dest-badge').innerText = '📍 ' + (trip.destination || '未设定目的地');
+      
+      var destBadge = document.getElementById('workspace-trip-dest-badge');
+      if (trip.destination) {
+        destBadge.innerHTML = '<span>📍 ' + trip.destination + '</span><span class="text-[10px]">↗</span>';
+        destBadge.classList.remove('hidden');
+      } else {
+        destBadge.classList.add('hidden');
+      }
+
       document.getElementById('workspace-trip-subtitle').innerText = trip.dates + ' · 发起人: ' + trip.owner + ' · ' + trip.members.length + ' 位成员';
       document.getElementById('workspace-trip-desc').innerText = trip.description || '';
 
@@ -1344,7 +1494,7 @@
       switchView('workspace');
     }
 
-    // 渲染工作区活动列表
+    // 🌟 渲染工作区活动列表（活动地点带地图链接，点击阻止冒泡）
     function renderActivities(dayNumber) {
       var trip = tripsRegistry[currentActiveTripId] || tripsRegistry.florence;
       var container = document.getElementById('activities-container');
@@ -1362,20 +1512,17 @@
         
         if (!isCurrentTripArchived) {
           actionButtons = 
-            '<div class="flex items-center gap-1 self-start">' +
-              '<button onclick="openEditActivityPage(\'' + act.id + '\')" class="px-2.5 py-1 text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded transition-colors" title="编辑此活动">' +
+            '<div class="flex items-center gap-1 self-start flex-shrink-0">' +
+              '<button onclick="openEditActivityPage(\'' + act.id + '\')" class="px-2.5 py-1 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors" title="编辑此活动">' +
                 '✏️ 编辑' +
               '</button>' +
-              '<button onclick="deleteActivity(\'' + act.id + '\')" class="px-2.5 py-1 text-xs font-medium text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded transition-colors" title="删除此活动">' +
+              '<button onclick="deleteActivity(\'' + act.id + '\')" class="px-2.5 py-1 text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors" title="删除此活动">' +
                 '🗑️ 删除' +
               '</button>' +
             '</div>';
         }
 
-        var originProposal = null;
-        if (act.proposalId) {
-          originProposal = trip.proposals.find(function(p) { return p.id === act.proposalId; });
-        }
+        var creatorName = act.createdBy || 'Alice';
 
         // 纯 CSS 锚定悬窗
         var activityFlyoutHtml = 
@@ -1388,34 +1535,64 @@
               '⏰ 时间: <strong class="text-white">' + act.time + ' ~ ' + (act.endTime || '结束') + '</strong>' +
             '</div>' +
             (act.location ? '<div class="text-xs text-blue-300 mb-2 truncate">📍 地点: ' + act.location + '</div>' : '') +
-            '<div class="text-xs text-slate-300 leading-relaxed bg-slate-800/90 p-2 rounded-lg border border-slate-700 mb-1">' +
+            '<div class="text-xs text-slate-300 leading-relaxed bg-slate-800/90 p-2 rounded-lg border border-slate-700 mb-2">' +
               (act.notes || '暂无说明细节') +
             '</div>' +
-            (originProposal ? 
-              '<div class="text-[10px] text-amber-300 pt-1">✨ 由共识提议「' + originProposal.title + '」一键排入</div>' : 
-              '<div class="text-[10px] text-slate-400 pt-1">📌 手动添加的团队既定活动</div>'
-            ) +
+            '<div class="pt-1.5 border-t border-slate-700 flex items-center justify-between text-[10px] text-slate-300 font-medium">' +
+              '<span>👤 创建人: ' + creatorName + '</span>' +
+              (act.updatedBy ? '<span class="text-amber-300">✏️ ' + act.updatedBy + ' 修改</span>' : '<span>未修改</span>') +
+            '</div>' +
           '</div>';
 
-        html += '<div class="bg-white border border-slate-200 rounded-xl p-4 flex items-start justify-between gap-4 shadow-sm hover:border-slate-300 transition-colors">' +
-          '<div class="flex items-start gap-4">' +
-            '<div class="text-center min-w-[50px]">' +
-              '<span class="text-sm font-mono font-bold text-slate-900">' + act.time + '</span>' +
-              '<span class="block text-[10px] text-slate-400 font-mono">TIME</span>' +
-            '</div>' +
-            '<div>' +
-              '<div class="relative group inline-block">' +
-                '<h4 onclick="openActivityDetailModal(\'' + trip.id + '\', \'' + act.id + '\')" class="text-sm font-bold text-slate-900 inline-flex items-center gap-1.5 cursor-pointer hover:text-blue-600 hover:underline transition-colors">' + 
-                  act.title + 
-                  '<span class="text-slate-400 text-xs font-normal" title="点击展开全屏卡片">🔍</span>' +
-                '</h4>' +
-                activityFlyoutHtml +
+        // 显式人员胶囊徽标
+        var personBadgeHtml = '';
+        if (act.updatedBy) {
+          personBadgeHtml = 
+            '<span class="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-800 bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-full">' +
+              '<span>✏️</span>' + act.updatedBy + ' 修改' + (act.updatedAt ? ' (' + act.updatedAt + ')' : '') +
+            '</span>';
+        } else {
+          personBadgeHtml = 
+            '<span class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-700 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full">' +
+              '<span>👤</span>' + creatorName + ' 创建' +
+            '</span>';
+        }
+
+        // 🌟 活动卡片内可点击的地图定位按钮
+        var locationLinkHtml = '';
+        if (act.location) {
+          locationLinkHtml = 
+            '<div class="text-xs font-medium text-blue-600 flex items-center gap-1">' +
+              '<button onclick="openMap(\'' + act.location.replace(/'/g, "\\'") + '\', event)" class="hover:underline hover:text-blue-800 inline-flex items-center gap-1 text-left" title="在地图中导航查看">' +
+                '<span>📍</span><span>' + act.location + '</span><span class="text-[10px]">↗</span>' +
+              '</button>' +
+            '</div>';
+        }
+
+        html += '<div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:border-slate-300 transition-all space-y-3">' +
+          '<div class="flex items-start justify-between gap-3">' +
+            '<div class="flex items-start gap-3.5 flex-1">' +
+              '<div class="text-center min-w-[52px] bg-slate-50 border border-slate-100 p-2 rounded-lg">' +
+                '<span class="text-sm font-mono font-bold text-slate-900 block">' + act.time + '</span>' +
+                '<span class="block text-[10px] text-slate-400 font-mono">TIME</span>' +
               '</div>' +
-              (act.location ? '<div class="text-xs font-medium text-blue-600 mt-0.5">📍 ' + act.location + '</div>' : '') +
-              '<p class="text-xs text-slate-500 mt-0.5">' + (act.notes || '无说明') + '</p>' +
+              '<div class="space-y-1">' +
+                '<div class="flex items-center gap-2 flex-wrap">' +
+                  '<div class="relative group inline-block">' +
+                    '<h4 onclick="openActivityDetailModal(\'' + trip.id + '\', \'' + act.id + '\')" class="text-sm font-bold text-slate-900 inline-flex items-center gap-1.5 cursor-pointer hover:text-blue-600 hover:underline transition-colors">' + 
+                      act.title + 
+                      '<span class="text-slate-400 text-xs font-normal" title="点击展开全屏卡片">🔍</span>' +
+                    '</h4>' +
+                    activityFlyoutHtml +
+                  '</div>' +
+                  personBadgeHtml +
+                '</div>' +
+                locationLinkHtml +
+                '<p class="text-xs text-slate-500 leading-relaxed">' + (act.notes || '暂无说明') + '</p>' +
+              '</div>' +
             '</div>' +
+            actionButtons +
           '</div>' +
-          actionButtons +
         '</div>';
       }
       container.innerHTML = html;
@@ -1459,7 +1636,7 @@
       if (!targetAct) return;
 
       document.getElementById('act-form-title').innerText = '编辑活动';
-      document.getElementById('act-form-desc').innerText = '修改活动地点、时间安排与备注';
+      document.getElementById('act-form-desc').innerText = '修改活动地点、时间安排与备注（将自动记录为你为修改人）';
       document.getElementById('editing-activity-id').value = targetAct.id;
       document.getElementById('origin-proposal-id').value = targetAct.proposalId || '';
       document.getElementById('act-title').value = targetAct.title;
@@ -1487,6 +1664,7 @@
       switchView('activity-new');
     }
 
+    // 确认保存
     function saveActivityAndReturn() {
       if (isCurrentTripArchived) return;
       var title = document.getElementById('act-title').value.trim() || '未命名活动';
@@ -1499,6 +1677,7 @@
       var editingActId = document.getElementById('editing-activity-id').value;
 
       var trip = tripsRegistry[currentActiveTripId] || tripsRegistry.florence;
+      var nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
       if (editingActId) {
         var act = trip.activities.find(function(a) { return a.id === editingActId; });
@@ -1509,6 +1688,8 @@
           act.time = time;
           act.endTime = endTime;
           act.notes = notes;
+          act.updatedBy = currentUserName;
+          act.updatedAt = '今天 ' + nowStr;
         }
       } else {
         trip.activities.push({
@@ -1519,7 +1700,10 @@
           title: title,
           location: location,
           notes: notes,
-          proposalId: proposalId || null
+          proposalId: proposalId || null,
+          createdBy: currentUserName,
+          updatedBy: null,
+          updatedAt: null
         });
 
         if (proposalId) {
@@ -1534,6 +1718,7 @@
       updateAllDayBadges();
       selectDay(targetDay);
       renderProposals(trip.proposals);
+      renderActivities(targetDay);
       renderHomeActivitiesFeed();
       switchView('workspace');
     }
