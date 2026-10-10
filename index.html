@@ -65,6 +65,7 @@
           <div>
             <span class="text-sm font-medium text-amber-900">bob_42 邀请你加入行程</span>
             <span class="text-sm font-bold text-amber-950 ml-1">「冰岛环岛极光之旅」</span>
+            <span class="text-xs text-amber-800 ml-1">📍 冰岛·雷克雅未克</span>
           </div>
         </div>
         <div class="flex items-center gap-2 self-end sm:self-auto">
@@ -107,6 +108,9 @@
               <span class="text-xs bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded font-medium">Owner</span>
             </div>
             <h4 class="text-base font-bold text-slate-900 mt-4">佛罗伦萨文艺复兴漫游</h4>
+            <div class="flex items-center gap-1.5 mt-1 text-xs text-blue-600 font-medium">
+              <span>📍 意大利·佛罗伦萨</span>
+            </div>
             <p class="text-xs text-slate-400 mt-1">2026/10/14 - 2026/10/18 (5 天)</p>
             <p class="text-xs text-slate-500 mt-2 line-clamp-2">文艺复兴艺术巡礼与托斯卡纳美食之旅。</p>
             <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
@@ -121,6 +125,9 @@
               <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium">Member</span>
             </div>
             <h4 class="text-base font-bold text-slate-900 mt-4">尼斯蔚蓝海岸度假</h4>
+            <div class="flex items-center gap-1.5 mt-1 text-xs text-blue-600 font-medium">
+              <span>📍 法国·尼斯</span>
+            </div>
             <p class="text-xs text-slate-400 mt-1">2026/11/02 - 2026/11/06 (5 天)</p>
             <p class="text-xs text-slate-500 mt-2 line-clamp-2">蔚蓝海岸休闲度假、阳光沙滩与老城探索。</p>
             <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
@@ -137,6 +144,9 @@
               </span>
             </div>
             <h4 class="text-base font-bold text-slate-700 mt-4 group-hover:text-slate-900">罗马古城探索</h4>
+            <div class="flex items-center gap-1.5 mt-1 text-xs text-slate-400 font-medium">
+              <span>📍 意大利·罗马</span>
+            </div>
             <p class="text-xs text-slate-400 mt-1">2026/04/10 - 2026/04/15 (6 天)</p>
             <p class="text-xs text-slate-500 mt-2 line-clamp-2">古罗马历史古迹全景探索。</p>
             <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
@@ -173,9 +183,10 @@
       <!-- 行程顶栏与成员信息 -->
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200">
         <div>
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-3 flex-wrap">
             <button onclick="switchView('home')" class="text-slate-400 hover:text-slate-600 text-sm font-medium">← 返回大堂</button>
             <h1 id="workspace-trip-title" class="text-2xl font-bold tracking-tight text-slate-900">佛罗伦萨文艺复兴漫游</h1>
+            <span id="workspace-trip-dest-badge" class="bg-blue-50 text-blue-700 border border-blue-200 text-xs px-2.5 py-0.5 rounded-md font-medium">📍 目的地</span>
             <span id="workspace-role-badge" class="bg-amber-50 text-amber-800 border border-amber-200 text-xs px-2 py-0.5 rounded font-bold">👑 Owner</span>
             <span id="workspace-status-badge" class="bg-slate-100 text-slate-600 text-xs px-2.5 py-1 rounded-md font-mono">v3 (OCC)</span>
           </div>
@@ -518,7 +529,7 @@
     </div>
   </div>
 
-  <!-- 新建行程 Modal -->
+  <!-- 🌟 新建行程 Modal (已加入“目的地”必填项) -->
   <div id="create-trip-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl space-y-4">
       <div class="flex items-center justify-between pb-3 border-b border-slate-100">
@@ -530,6 +541,11 @@
         <div>
           <label class="block text-xs font-semibold text-slate-700 mb-1">行程名称 *</label>
           <input type="text" id="new-trip-title" required placeholder="例如：东京美食探索之旅" class="w-full px-3.5 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 text-sm">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">目的地 (Destination) *</label>
+          <input type="text" id="new-trip-destination" required placeholder="例如：日本·东京 / 云南·大理" class="w-full px-3.5 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 text-sm">
         </div>
 
         <div class="grid grid-cols-2 gap-3">
@@ -594,11 +610,12 @@
     var hasJoinedIceland = false;
     var currentUserName = 'Alice';
 
-    // 核心数据集
+    // 核心数据集 (已配置 destination 目的地)
     var tripsRegistry = {
       florence: {
         id: 'florence',
         title: '佛罗伦萨文艺复兴漫游',
+        destination: '意大利·佛罗伦萨',
         description: '文艺复兴艺术巡礼与托斯卡纳美食之旅。',
         dates: '2026/10/14 - 2026/10/18 (5 天)',
         owner: 'Alice (我)',
@@ -647,6 +664,7 @@
       nice: {
         id: 'nice',
         title: '尼斯蔚蓝海岸度假',
+        destination: '法国·尼斯',
         description: '蔚蓝海岸休闲度假、阳光沙滩与老城探索。',
         dates: '2026/11/02 - 2026/11/06 (5 天)',
         owner: 'Bob',
@@ -676,6 +694,7 @@
       iceland: {
         id: 'iceland',
         title: '冰岛环岛极光之旅',
+        destination: '冰岛·雷克雅未克',
         description: '追逐北极光、探索黑沙滩与黄金圈壮丽风景。',
         dates: '2026/11/15 - 2026/11/22 (8 天)',
         owner: 'bob_42',
@@ -708,6 +727,7 @@
       rome: {
         id: 'rome',
         title: '罗马古城探索',
+        destination: '意大利·罗马',
         description: '古罗马历史古迹全景探索。',
         dates: '2026/04/10 - 2026/04/15 (6 天)',
         owner: 'Carol',
@@ -733,7 +753,7 @@
       var act = trip.activities.find(function(a) { return a.id === actId; });
       if (!act) return;
 
-      document.getElementById('detail-act-trip').innerText = trip.title;
+      document.getElementById('detail-act-trip').innerText = trip.title + ' (📍' + (trip.destination || '未设定') + ')';
       document.getElementById('detail-act-day-badge').innerText = 'Day ' + act.day;
       document.getElementById('detail-act-title').innerText = act.title;
       document.getElementById('detail-act-time').innerText = act.time + (act.endTime ? ' - ' + act.endTime : '');
@@ -824,7 +844,7 @@
       renderProposals(trip.proposals);
     }
 
-    // 渲染提议池：使用纯 CSS 原位绝对定位悬窗 (group + group-hover)
+    // 渲染提议池
     function renderProposals(proposals) {
       var container = document.getElementById('proposals-list-container');
       document.getElementById('proposal-count-badge').innerText = proposals.length;
@@ -850,7 +870,7 @@
           if (v.decision === 'REJECT') rejectUsers.push(v.userId);
         });
 
-        // 🌟 纯 CSS 锚定悬窗：绝对定位在标题上方，pointer-events-none 防止挡住鼠标
+        // 纯 CSS 锚定悬窗
         var proposalFlyoutHtml = 
           '<div class="absolute left-0 bottom-full mb-2 hidden group-hover:block z-40 w-72 max-w-[85vw] p-3.5 bg-slate-900 text-white rounded-xl shadow-2xl border border-slate-700/80 pointer-events-none text-left">' +
             '<div class="flex items-center justify-between border-b border-slate-700 pb-1.5 mb-2">' +
@@ -1019,14 +1039,16 @@
       if (listContainer) listContainer.scrollIntoView({ behavior: 'smooth' });
     }
 
+    // 🌟 创建行程（正式支持目的地输入与呈现）
     function handleCreateTripSubmit(event) {
       event.preventDefault();
       var title = document.getElementById('new-trip-title').value.trim();
+      var destination = document.getElementById('new-trip-destination').value.trim();
       var start = document.getElementById('new-trip-start').value;
       var end = document.getElementById('new-trip-end').value;
       var desc = document.getElementById('new-trip-desc').value.trim() || '暂无详细描述';
 
-      if (!title) return;
+      if (!title || !destination) return;
 
       var newTripId = 'trip-' + Date.now();
       var dateRange = start.replace(/-/g, '/') + ' - ' + end.replace(/-/g, '/');
@@ -1034,6 +1056,7 @@
       tripsRegistry[newTripId] = {
         id: newTripId,
         title: title,
+        destination: destination,
         description: desc,
         dates: dateRange,
         owner: currentUserName + ' (我)',
@@ -1061,6 +1084,9 @@
           '<span class="text-xs bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded font-medium">Owner</span>' +
         '</div>' +
         '<h4 class="text-base font-bold text-slate-900 mt-4">' + title + '</h4>' +
+        '<div class="flex items-center gap-1 mt-1 text-xs text-blue-600 font-medium">' +
+          '<span>📍 ' + destination + '</span>' +
+        '</div>' +
         '<p class="text-xs text-slate-400 mt-1">' + dateRange + '</p>' +
         '<p class="text-xs text-slate-500 mt-2 line-clamp-2">' + desc + '</p>' +
         '<div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">' +
@@ -1075,7 +1101,7 @@
       countSpan.innerText = (currentCount + 1).toString();
       document.getElementById('home-trip-count-text').innerText = (currentCount + 1).toString();
 
-      alert('行程「' + title + '」创建成功！');
+      alert('行程「' + title + '」（📍' + destination + '）创建成功！');
       openTrip(newTripId, false);
     }
 
@@ -1116,7 +1142,7 @@
       document.getElementById('nav-user-avatar').innerText = initials;
     }
 
-    // 渲染首页活动流：同样使用纯 CSS 原位锚定悬窗
+    // 渲染首页活动流
     function renderHomeActivitiesFeed() {
       var actContainer = document.getElementById('home-activities-container');
       var activities = [];
@@ -1218,6 +1244,9 @@
           '<span class="text-xs bg-slate-100 text-slate-700 border border-slate-200 px-2 py-0.5 rounded font-bold">新加入 (Member)</span>' +
         '</div>' +
         '<h4 class="text-base font-bold text-slate-900 mt-4 flex items-center">冰岛环岛极光之旅</h4>' +
+        '<div class="flex items-center gap-1.5 mt-1 text-xs text-blue-600 font-medium">' +
+          '<span>📍 冰岛·雷克雅未克</span>' +
+        '</div>' +
         '<p class="text-xs text-slate-400 mt-1">2026/11/15 - 2026/11/22 (8 天)</p>' +
         '<p class="text-xs text-slate-500 mt-2 line-clamp-2">追逐北极光、探索黑沙滩与黄金圈壮丽风景。</p>' +
         '<div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">' +
@@ -1235,6 +1264,7 @@
       var trip = tripsRegistry[tripId] || tripsRegistry.florence;
 
       document.getElementById('workspace-trip-title').innerText = trip.title;
+      document.getElementById('workspace-trip-dest-badge').innerText = '📍 ' + (trip.destination || '未设定目的地');
       document.getElementById('workspace-trip-subtitle').innerText = trip.dates + ' · 发起人: ' + trip.owner + ' · ' + trip.members.length + ' 位成员';
       document.getElementById('workspace-trip-desc').innerText = trip.description || '';
 
@@ -1300,7 +1330,7 @@
       switchView('workspace');
     }
 
-    // 渲染工作区活动列表：使用纯 CSS 原位锚定悬窗
+    // 渲染工作区活动列表
     function renderActivities(dayNumber) {
       var trip = tripsRegistry[currentActiveTripId] || tripsRegistry.florence;
       var container = document.getElementById('activities-container');
@@ -1333,7 +1363,7 @@
           originProposal = trip.proposals.find(function(p) { return p.id === act.proposalId; });
         }
 
-        // 🌟 纯 CSS 锚定悬窗：绝对定位在活动标题上方
+        // 纯 CSS 锚定悬窗
         var activityFlyoutHtml = 
           '<div class="absolute left-0 bottom-full mb-2 hidden group-hover:block z-40 w-72 max-w-[85vw] p-3.5 bg-slate-900 text-white rounded-xl shadow-2xl border border-slate-700/80 pointer-events-none text-left">' +
             '<div class="flex items-center justify-between border-b border-slate-700 pb-1.5 mb-2">' +
