@@ -16,6 +16,22 @@
     .pulse-highlight {
       animation: pulseHighlight 1.2s ease-out forwards;
     }
+
+    /* 提议池与列表精美滚动条 */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col font-sans relative">
@@ -227,8 +243,8 @@
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
         <!-- 左侧：提议灵感池 -->
-        <div class="lg:col-span-5 bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
-          <div class="flex items-center justify-between">
+        <div class="lg:col-span-5 bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col max-h-[820px]">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100 flex-shrink-0">
             <div class="flex items-center gap-2">
               <span class="text-base font-bold text-slate-900">💡 提议池 (Proposal Pool)</span>
               <span id="proposal-count-badge" class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-semibold">2</span>
@@ -237,9 +253,9 @@
               + 提出灵感
             </button>
           </div>
-          <p id="workspace-proposal-hint" class="text-xs text-slate-400">门槛规则：达成 ≥50% 赞成共识后可排入日程；鼠标移入标题可在原位悬浮查看详情。</p>
+          <p id="workspace-proposal-hint" class="text-xs text-slate-400 py-2 flex-shrink-0">门槛规则：达成 ≥50% 赞成共识后可排入日程；鼠标移入标题可在原位悬浮查看详情。</p>
 
-          <div id="proposals-list-container" class="space-y-3 pt-2"></div>
+          <div id="proposals-list-container" class="space-y-3 pt-1 overflow-y-auto custom-scrollbar flex-1 pr-1.5 min-h-[220px]"></div>
         </div>
 
         <!-- 右侧：日程日历步进器 -->
@@ -485,9 +501,7 @@
         </div>
         <div>
           <span class="text-slate-400 block font-medium">活动地点</span>
-          <div id="detail-act-location-box" class="mt-0.5">
-            <!-- 动态生成带地图链接的地点 -->
-          </div>
+          <div id="detail-act-location-box" class="mt-0.5"></div>
         </div>
       </div>
 
@@ -641,7 +655,7 @@
     var hasJoinedIceland = false;
     var currentUserName = 'Alice';
 
-    // 🌟 全局地图直达导航函数 (自动转义并阻止冒泡)
+    // 全局地图直达导航函数 (自动转义并阻止冒泡)
     function openMap(query, event) {
       if (event) {
         event.stopPropagation();
@@ -702,6 +716,29 @@
             votes: [
               { userId: 'Carol', decision: 'AGREE' },
               { userId: 'Bob', decision: 'REJECT' }
+            ]
+          },
+          { 
+            id: 'p3', 
+            title: '米开朗基罗广场看落日全景', 
+            author: 'Dave', 
+            isAdopted: false,
+            adoptedDay: null,
+            notes: '傍晚去视野极佳，阶梯上有街头艺人弹唱。',
+            votes: [
+              { userId: 'Dave', decision: 'AGREE' },
+              { userId: 'Alice', decision: 'AGREE' }
+            ]
+          },
+          { 
+            id: 'p4', 
+            title: '圣十字大教堂及周边皮具手工作坊', 
+            author: 'Alice', 
+            isAdopted: false,
+            adoptedDay: null,
+            notes: '探索佛罗伦萨传统皮具工艺，适合下午漫步。',
+            votes: [
+              { userId: 'Alice', decision: 'AGREE' }
             ]
           }
         ],
@@ -974,7 +1011,7 @@
       renderProposals(trip.proposals);
     }
 
-    // 渲染提议池
+    // 🌟 渲染提议池：智能判定第 1 个提议向下弹出（避免被容器顶部边缘切断）
     function renderProposals(proposals) {
       var container = document.getElementById('proposals-list-container');
       document.getElementById('proposal-count-badge').innerText = proposals.length;
@@ -1000,9 +1037,13 @@
           if (v.decision === 'REJECT') rejectUsers.push(v.userId);
         });
 
-        // 纯 CSS 锚定悬窗
+        // 🌟 核心防遮挡修复：第一个 proposal 向下弹出（top-full mt-2），后续的向上弹出（bottom-full mb-2）
+        var flyoutPositionClass = (i === 0) 
+          ? 'left-0 top-full mt-2' 
+          : 'left-0 bottom-full mb-2';
+
         var proposalFlyoutHtml = 
-          '<div class="absolute left-0 bottom-full mb-2 hidden group-hover:block z-40 w-72 max-w-[85vw] p-3.5 bg-slate-900 text-white rounded-xl shadow-2xl border border-slate-700/80 pointer-events-none text-left">' +
+          '<div class="absolute ' + flyoutPositionClass + ' hidden group-hover:block z-50 w-72 max-w-[85vw] p-3.5 bg-slate-900 text-white rounded-xl shadow-2xl border border-slate-700 pointer-events-none text-left">' +
             '<div class="flex items-center justify-between border-b border-slate-700 pb-1.5 mb-2">' +
               '<span class="text-xs font-bold text-amber-300">💡 提议详情</span>' +
               '<span class="text-[10px] text-slate-400">发起人: ' + p.author + '</span>' +
@@ -1166,7 +1207,7 @@
       renderProposals(trip.proposals);
 
       var listContainer = document.getElementById('proposals-list-container');
-      if (listContainer) listContainer.scrollIntoView({ behavior: 'smooth' });
+      if (listContainer) listContainer.scrollTop = 0;
     }
 
     // 创建行程
@@ -1217,7 +1258,7 @@
         '<div class="flex items-center gap-1 mt-1 text-xs">' +
           '<button onclick="openMap(\'' + destination.replace(/'/g, "\\'") + '\', event)" class="text-blue-600 hover:text-blue-800 font-medium hover:underline inline-flex items-center gap-0.5">' +
             '<span>📍 ' + destination + '</span><span class="text-[10px]">↗</span>' +
-          '</button>' +
+          '</button> Cer' +
         '</div>' +
         '<p class="text-xs text-slate-400 mt-1">' + dateRange + '</p>' +
         '<p class="text-xs text-slate-500 mt-2 line-clamp-2">' + desc + '</p>' +
@@ -1274,7 +1315,7 @@
       document.getElementById('nav-user-avatar').innerText = initials;
     }
 
-    // 🌟 渲染首页活动流（地址直达地图）
+    // 渲染首页活动流
     function renderHomeActivitiesFeed() {
       var actContainer = document.getElementById('home-activities-container');
       var activities = [];
@@ -1340,7 +1381,6 @@
           ? '<span class="text-[11px] font-semibold text-amber-700 bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-md flex items-center gap-1"><span>✏️</span>由 ' + a.updatedBy + ' 修改</span>'
           : '<span class="text-[11px] font-medium text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md flex items-center gap-1"><span>👤</span>由 ' + a.createdBy + ' 创建</span>';
 
-        // 🌟 首页活动地点一键调起地图链接
         var locLinkHtml = a.location 
           ? ' · <button onclick="openMap(\'' + a.location.replace(/'/g, "\\'") + '\', event)" class="text-blue-600 hover:text-blue-800 hover:underline font-medium inline-flex items-center gap-0.5"><span>📍 ' + a.location + '</span><span class="text-[10px]">↗</span></button>' 
           : '';
@@ -1403,7 +1443,7 @@
             '<span>📍 冰岛·雷克雅未克</span><span class="text-[10px]">↗</span>' +
           '</button>' +
         '</div>' +
-        '<p class="text-xs text-slate-400 mt-1">2026/11/15 - 2026/11/22 (8 天)</p>' +
+        '<p class="text-xs text-slate-400 mt-1">' + dateRange + '</p>' +
         '<p class="text-xs text-slate-500 mt-2 line-clamp-2">追逐北极光、探索黑沙滩与黄金圈壮丽风景。</p>' +
         '<div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">' +
           '<span>发起人: bob_42</span>' +
@@ -1494,7 +1534,7 @@
       switchView('workspace');
     }
 
-    // 🌟 渲染工作区活动列表（活动地点带地图链接，点击阻止冒泡）
+    // 渲染工作区活动列表
     function renderActivities(dayNumber) {
       var trip = tripsRegistry[currentActiveTripId] || tripsRegistry.florence;
       var container = document.getElementById('activities-container');
@@ -1544,7 +1584,6 @@
             '</div>' +
           '</div>';
 
-        // 显式人员胶囊徽标
         var personBadgeHtml = '';
         if (act.updatedBy) {
           personBadgeHtml = 
@@ -1558,7 +1597,6 @@
             '</span>';
         }
 
-        // 🌟 活动卡片内可点击的地图定位按钮
         var locationLinkHtml = '';
         if (act.location) {
           locationLinkHtml = 
