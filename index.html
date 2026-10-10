@@ -1011,7 +1011,7 @@
       renderProposals(trip.proposals);
     }
 
-    // 🌟 渲染提议池：智能判定第 1 个提议向下弹出（避免被容器顶部边缘切断）
+    // 渲染提议池
     function renderProposals(proposals) {
       var container = document.getElementById('proposals-list-container');
       document.getElementById('proposal-count-badge').innerText = proposals.length;
@@ -1037,7 +1037,6 @@
           if (v.decision === 'REJECT') rejectUsers.push(v.userId);
         });
 
-        // 🌟 核心防遮挡修复：第一个 proposal 向下弹出（top-full mt-2），后续的向上弹出（bottom-full mb-2）
         var flyoutPositionClass = (i === 0) 
           ? 'left-0 top-full mt-2' 
           : 'left-0 bottom-full mb-2';
@@ -1258,7 +1257,7 @@
         '<div class="flex items-center gap-1 mt-1 text-xs">' +
           '<button onclick="openMap(\'' + destination.replace(/'/g, "\\'") + '\', event)" class="text-blue-600 hover:text-blue-800 font-medium hover:underline inline-flex items-center gap-0.5">' +
             '<span>📍 ' + destination + '</span><span class="text-[10px]">↗</span>' +
-          '</button> Cer' +
+          '</button>' +
         '</div>' +
         '<p class="text-xs text-slate-400 mt-1">' + dateRange + '</p>' +
         '<p class="text-xs text-slate-500 mt-2 line-clamp-2">' + desc + '</p>' +
@@ -1414,44 +1413,58 @@
       actContainer.innerHTML = html;
     }
 
+    // 🌟 修复与增强：接受邀请后在主页完美高亮呈现新卡片
     function acceptIcelandInvite() {
       if (hasJoinedIceland) return;
       hasJoinedIceland = true;
 
+      // 1. 移除待办通知条
       var banner = document.getElementById('invite-banner-iceland');
       if (banner) banner.remove();
 
+      // 2. 更新冰岛行程状态并加入主页活动流
+      tripsRegistry.iceland.status = 'upcoming';
+      tripsRegistry.iceland.isAccepted = true;
+
+      // 3. 更新行程总数统计
       document.getElementById('upcoming-trips-count').innerText = '3';
       document.getElementById('home-trip-count-text').innerText = '3';
 
+      // 4. 即时重新渲染活动流
       renderHomeActivitiesFeed();
 
+      // 5. 将冰岛卡片高亮插入到行程卡片网格中
       var gridContainer = document.getElementById('trips-grid-container');
       var createCardBtn = document.getElementById('create-trip-btn-card');
       
       var icelandTripCard = document.createElement('div');
-      icelandTripCard.className = 'trip-card upcoming pulse-highlight bg-white border border-emerald-300 rounded-xl p-5 hover:border-emerald-400 hover:shadow-md transition-all cursor-pointer';
+      icelandTripCard.className = 'trip-card upcoming pulse-highlight bg-white border-2 border-emerald-400 rounded-xl p-5 hover:border-emerald-500 hover:shadow-md transition-all cursor-pointer shadow-sm';
       icelandTripCard.onclick = function() { openTrip('iceland', false); };
       icelandTripCard.innerHTML = 
         '<div class="flex items-start justify-between">' +
           '<span class="text-2xl">🌋</span>' +
-          '<span class="text-xs bg-slate-100 text-slate-700 border border-slate-200 px-2 py-0.5 rounded font-bold">新加入 (Member)</span>' +
+          '<span class="text-xs bg-emerald-100 text-emerald-800 border border-emerald-300 px-2.5 py-0.5 rounded-md font-bold">新加入 (Member)</span>' +
         '</div>' +
-        '<h4 class="text-base font-bold text-slate-900 mt-4 flex items-center">冰岛环岛极光之旅</h4>' +
+        '<h4 class="text-base font-bold text-slate-900 mt-4 flex items-center gap-1.5">' +
+          '<span>冰岛环岛极光之旅</span>' +
+          '<span class="text-[10px] bg-emerald-600 text-white font-semibold px-1.5 py-0.5 rounded">NEW</span>' +
+        '</h4>' +
         '<div class="flex items-center gap-1 mt-1 text-xs">' +
           '<button onclick="openMap(\'冰岛 雷克雅未克\', event)" class="text-blue-600 hover:text-blue-800 font-medium hover:underline inline-flex items-center gap-0.5">' +
             '<span>📍 冰岛·雷克雅未克</span><span class="text-[10px]">↗</span>' +
           '</button>' +
         '</div>' +
-        '<p class="text-xs text-slate-400 mt-1">' + dateRange + '</p>' +
+        '<p class="text-xs text-slate-400 mt-1">2026/11/15 - 2026/11/22 (8 天)</p>' +
         '<p class="text-xs text-slate-500 mt-2 line-clamp-2">追逐北极光、探索黑沙滩与黄金圈壮丽风景。</p>' +
         '<div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">' +
           '<span>发起人: bob_42</span>' +
-          '<span class="font-bold text-emerald-700">2 项活动</span>' +
+          '<span class="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">2 项活动</span>' +
         '</div>';
 
       gridContainer.insertBefore(icelandTripCard, createCardBtn);
-      document.getElementById('home-activities-container').scrollIntoView({ behavior: 'smooth' });
+
+      // 平滑滚动至新加入的行程卡片
+      icelandTripCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     function openTrip(tripId, isArchived) {
