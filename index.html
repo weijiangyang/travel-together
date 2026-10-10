@@ -328,6 +328,15 @@
             <input type="text" id="act-title" required placeholder="例如：乌菲兹美术馆参观" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-900">
           </div>
 
+          <!-- 🌟 新增：活动地点（Location） -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1.5">活动地点 (Location)</label>
+            <div class="relative">
+              <span class="absolute left-3.5 top-2.5 text-slate-400">📍</span>
+              <input type="text" id="act-location" placeholder="例如：Piazzale Michelangelo / 乌菲兹美术馆正门" class="w-full pl-9 pr-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-900">
+            </div>
+          </div>
+
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
             <div>
               <label class="block text-xs font-semibold text-slate-700 mb-1.5">归属日期 *</label>
@@ -465,10 +474,8 @@
           <span id="detail-act-time" class="font-bold text-slate-800 text-sm mt-0.5 block">09:30 - 11:30</span>
         </div>
         <div>
-          <span class="text-slate-400 block font-medium">状态</span>
-          <span class="font-bold text-emerald-700 text-sm mt-0.5 block flex items-center gap-1">
-            <span>●</span> 已敲定排入日程
-          </span>
+          <span class="text-slate-400 block font-medium">活动地点</span>
+          <span id="detail-act-location" class="font-bold text-blue-700 text-sm mt-0.5 block truncate">未设定</span>
         </div>
       </div>
 
@@ -529,7 +536,7 @@
     </div>
   </div>
 
-  <!-- 🌟 新建行程 Modal (已加入“目的地”必填项) -->
+  <!-- 新建行程 Modal -->
   <div id="create-trip-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl space-y-4">
       <div class="flex items-center justify-between pb-3 border-b border-slate-100">
@@ -610,7 +617,7 @@
     var hasJoinedIceland = false;
     var currentUserName = 'Alice';
 
-    // 核心数据集 (已配置 destination 目的地)
+    // 核心数据集 (Activity 增加 location 地点)
     var tripsRegistry = {
       florence: {
         id: 'florence',
@@ -657,8 +664,8 @@
           }
         ],
         activities: [
-          { id: 'act-1', day: 1, time: '09:30', endTime: '11:30', title: '圣母百花大教堂登顶', notes: '已全额付款预订。需提前 15 分钟抵达门廊安检，请勿穿无袖背心或膝上短裤。', proposalId: null },
-          { id: 'act-2', day: 1, time: '12:30', endTime: '14:00', title: '中央市场 T 骨牛排午餐', notes: '已在二楼 Da Nerbone 订长桌包厢，由投票提议一键导入。', proposalId: 'p1' }
+          { id: 'act-1', day: 1, time: '09:30', endTime: '11:30', title: '圣母百花大教堂登顶', location: 'Piazza del Duomo, 50122 Firenze', notes: '已全额付款预订。需提前 15 分钟抵达门廊安检，请勿穿无袖背心或膝上短裤。', proposalId: null },
+          { id: 'act-2', day: 1, time: '12:30', endTime: '14:00', title: '中央市场 T 骨牛排午餐', location: 'Piazza del Mercato Centrale 2楼', notes: '已在二楼 Da Nerbone 订长桌包厢，由投票提议一键导入。', proposalId: 'p1' }
         ]
       },
       nice: {
@@ -720,8 +727,8 @@
           }
         ],
         activities: [
-          { id: 'act-ice-1', day: 1, time: '10:00', endTime: '12:00', title: '雷克雅未克接机与极光营地集合', notes: '向导处领防寒装备，确认睡袋保暖级别。', proposalId: null },
-          { id: 'act-ice-2', day: 2, time: '14:00', endTime: '17:00', title: '蓝湖地热温泉 (Blue Lagoon) 门票已确认', notes: '由 bob_42 提前从共识提议排入。硅泥面膜包含在内。', proposalId: 'p_ice_1' }
+          { id: 'act-ice-1', day: 1, time: '10:00', endTime: '12:00', title: '雷克雅未克接机与极光营地集合', location: '凯夫拉维克国际机场 1号出口', notes: '向导处领防寒装备，确认睡袋保暖级别。', proposalId: null },
+          { id: 'act-ice-2', day: 2, time: '14:00', endTime: '17:00', title: '蓝湖地热温泉 (Blue Lagoon) 门票已确认', location: 'Norðurljósavegur 9, Grindavík', notes: '由 bob_42 提前从共识提议排入。硅泥面膜包含在内。', proposalId: 'p_ice_1' }
         ]
       },
       rome: {
@@ -740,7 +747,7 @@
         ],
         proposals: [],
         activities: [
-          { id: 'act-rome-1', day: 1, time: '09:00', endTime: '12:00', title: '古罗马斗兽场遗址', notes: '已归档', proposalId: null }
+          { id: 'act-rome-1', day: 1, time: '09:00', endTime: '12:00', title: '古罗马斗兽场遗址', location: 'Piazza del Colosseo, 1, Roma', notes: '已归档', proposalId: null }
         ]
       }
     };
@@ -757,6 +764,7 @@
       document.getElementById('detail-act-day-badge').innerText = 'Day ' + act.day;
       document.getElementById('detail-act-title').innerText = act.title;
       document.getElementById('detail-act-time').innerText = act.time + (act.endTime ? ' - ' + act.endTime : '');
+      document.getElementById('detail-act-location').innerText = act.location ? ('📍 ' + act.location) : '未设定具体地点';
       document.getElementById('detail-act-notes').innerText = act.notes || '暂无说明与注意事项';
 
       var editBtn = document.getElementById('detail-act-edit-btn');
@@ -1039,7 +1047,7 @@
       if (listContainer) listContainer.scrollIntoView({ behavior: 'smooth' });
     }
 
-    // 🌟 创建行程（正式支持目的地输入与呈现）
+    // 创建行程
     function handleCreateTripSubmit(event) {
       event.preventDefault();
       var title = document.getElementById('new-trip-title').value.trim();
@@ -1162,6 +1170,7 @@
               time: act.time,
               endTime: act.endTime,
               title: act.title,
+              location: act.location,
               notes: act.notes,
               proposalId: act.proposalId,
               isNew: act.isNew
@@ -1187,9 +1196,10 @@
               '<span class="text-xs font-bold text-blue-400">📅 [' + a.tripTitle + ']</span>' +
               '<span class="text-[10px] bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded font-mono">Day ' + a.day + '</span>' +
             '</div>' +
-            '<div class="text-xs font-mono text-slate-300 mb-2">' +
+            '<div class="text-xs font-mono text-slate-300 mb-1">' +
               '⏰ 时间: <strong class="text-white">' + a.time + ' ~ ' + (a.endTime || '结束') + '</strong>' +
             '</div>' +
+            (a.location ? '<div class="text-xs text-blue-300 mb-2 truncate">📍 地点: ' + a.location + '</div>' : '') +
             '<div class="text-xs text-slate-300 leading-relaxed bg-slate-800/90 p-2 rounded-lg border border-slate-700 mb-1">' +
               (a.notes || '暂无说明细节') +
             '</div>' +
@@ -1211,7 +1221,11 @@
                 '</div>' +
                 (a.isNew ? '<span class="text-[10px] bg-emerald-600 text-white font-bold px-2 py-0.5 rounded-full">新加入</span>' : '') +
               '</div>' +
-              '<p class="text-xs text-slate-500 mt-0.5">Day ' + a.day + ' · ' + a.time + ' · 备注: ' + (a.notes || '无') + '</p>' +
+              '<p class="text-xs text-slate-500 mt-0.5">' +
+                'Day ' + a.day + ' · ' + a.time +
+                (a.location ? (' · 📍 ' + a.location) : '') +
+                ' · 备注: ' + (a.notes || '无') +
+              '</p>' +
             '</div>' +
           '</div>' +
           '<span class="text-xs font-semibold text-slate-400 hover:text-slate-800 whitespace-nowrap">查看日程 ➔</span>' +
@@ -1370,9 +1384,10 @@
               '<span class="text-xs font-bold text-blue-400">📅 [' + trip.title + ']</span>' +
               '<span class="text-[10px] bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded font-mono">Day ' + act.day + '</span>' +
             '</div>' +
-            '<div class="text-xs font-mono text-slate-300 mb-2">' +
+            '<div class="text-xs font-mono text-slate-300 mb-1">' +
               '⏰ 时间: <strong class="text-white">' + act.time + ' ~ ' + (act.endTime || '结束') + '</strong>' +
             '</div>' +
+            (act.location ? '<div class="text-xs text-blue-300 mb-2 truncate">📍 地点: ' + act.location + '</div>' : '') +
             '<div class="text-xs text-slate-300 leading-relaxed bg-slate-800/90 p-2 rounded-lg border border-slate-700 mb-1">' +
               (act.notes || '暂无说明细节') +
             '</div>' +
@@ -1396,7 +1411,8 @@
                 '</h4>' +
                 activityFlyoutHtml +
               '</div>' +
-              '<p class="text-xs text-slate-500 mt-1">' + (act.notes || '无说明') + '</p>' +
+              (act.location ? '<div class="text-xs font-medium text-blue-600 mt-0.5">📍 ' + act.location + '</div>' : '') +
+              '<p class="text-xs text-slate-500 mt-0.5">' + (act.notes || '无说明') + '</p>' +
             '</div>' +
           '</div>' +
           actionButtons +
@@ -1443,10 +1459,11 @@
       if (!targetAct) return;
 
       document.getElementById('act-form-title').innerText = '编辑活动';
-      document.getElementById('act-form-desc').innerText = '修改活动时间安排与备注';
+      document.getElementById('act-form-desc').innerText = '修改活动地点、时间安排与备注';
       document.getElementById('editing-activity-id').value = targetAct.id;
       document.getElementById('origin-proposal-id').value = targetAct.proposalId || '';
       document.getElementById('act-title').value = targetAct.title;
+      document.getElementById('act-location').value = targetAct.location || '';
       document.getElementById('act-day-select').value = targetAct.day.toString();
       document.getElementById('act-start-time').value = targetAct.time || '14:00';
       document.getElementById('act-end-time').value = targetAct.endTime || '15:30';
@@ -1458,9 +1475,10 @@
     function openNewActivityPage(prefillTitle, proposalId) {
       if (isCurrentTripArchived) return;
       document.getElementById('act-form-title').innerText = '定义新活动';
-      document.getElementById('act-form-desc').innerText = '安排活动与时间，保存后实时反映在日程表中';
+      document.getElementById('act-form-desc').innerText = '安排活动地点与时间，保存后实时反映在日程表中';
       document.getElementById('editing-activity-id').value = '';
       document.getElementById('act-title').value = prefillTitle || '';
+      document.getElementById('act-location').value = '';
       document.getElementById('origin-proposal-id').value = proposalId || '';
       document.getElementById('act-day-select').value = currentSelectedDay.toString();
       document.getElementById('act-start-time').value = '14:00';
@@ -1472,6 +1490,7 @@
     function saveActivityAndReturn() {
       if (isCurrentTripArchived) return;
       var title = document.getElementById('act-title').value.trim() || '未命名活动';
+      var location = document.getElementById('act-location').value.trim();
       var targetDay = parseInt(document.getElementById('act-day-select').value, 10);
       var time = document.getElementById('act-start-time').value || '14:00';
       var endTime = document.getElementById('act-end-time').value || '15:30';
@@ -1485,6 +1504,7 @@
         var act = trip.activities.find(function(a) { return a.id === editingActId; });
         if (act) {
           act.title = title;
+          act.location = location;
           act.day = targetDay;
           act.time = time;
           act.endTime = endTime;
@@ -1497,6 +1517,7 @@
           time: time,
           endTime: endTime,
           title: title,
+          location: location,
           notes: notes,
           proposalId: proposalId || null
         });
